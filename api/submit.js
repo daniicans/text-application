@@ -144,6 +144,7 @@ module.exports = async function handler(req, res) {
 
   await transporter.sendMail({
     from: `"icans Applications" <${process.env.GMAIL_USER}>`,
+    replyTo: accountEmail || undefined,
     to: process.env.TO_EMAIL || 'onboarding@icans.ai',
     subject,
     html,

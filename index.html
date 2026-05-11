@@ -825,6 +825,30 @@ a { color: inherit; text-decoration: none; }
 .welcome-rise.d4 { animation-delay: 0.35s; }
 .welcome-rise.d5 { animation-delay: 0.45s; }
 
+/* ADDRESS AUTOCOMPLETE */
+.addr-wrap { position: relative; }
+.addr-suggestions {
+  position: absolute;
+  top: calc(100% + 4px); left: 0; right: 0;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  box-shadow: var(--shadow-lg);
+  z-index: 200;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.addr-suggestion {
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+  border-bottom: 1px solid var(--line);
+  line-height: 1.4;
+}
+.addr-suggestion:last-child { border-bottom: none; }
+.addr-suggestion:hover { background: var(--ink-50); }
+
 /* ============================================================
    MOBILE — fluid layout, no scale transform
 ============================================================ */
@@ -958,7 +982,7 @@ function emptyData() {
   return {
     businessName: '', website: '', ein: '', irsLetter: '',
     firstName: '', lastName: '', phone: '', accountEmail: '',
-    areaCode: '', address: '', city: '', state: '', country: '', postal: '',
+    areaCode: '', address: '', city: '', state: '', country: 'United States', postal: '',
     plan: '', consent: false,
   };
 }
@@ -1020,27 +1044,96 @@ const Select = ({ value, onChange, children }) => (
     onChange={e => onChange(e.target.value)}>{children}</select>
 );
 
-const FileDrop = ({ value, onChange }) => (
-  <div className="tg-filedrop" onClick={() => onChange(value ? '' : 'IRS-CP575-OnlyCans.pdf')}>
-    {value ? (
-      <div className="tg-filedrop-on">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-          <path d="M14 2v6h6M9 15l2 2 4-4"/>
-        </svg>
-        <span>{value}</span>
-        <span className="tg-filedrop-x">Remove</span>
-      </div>
-    ) : (
-      <div className="tg-filedrop-empty">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
-        </svg>
-        <span>PDF, DOC/DOCX, XLS/CSV, JPG/JPEG, PNG, GIF</span>
-      </div>
-    )}
-  </div>
-);
+const FileDrop = ({ value, onChange }) => {
+  const ref = React.useRef();
+  const handleFile = (e) => {
+    const file = e.target.files[0];
+    if (file) onChange(file.name);
+  };
+  return (
+    <div className="tg-filedrop" onClick={() => value ? onChange('') : ref.current.click()}>
+      <input ref={ref} type="file" style={{display:'none'}}
+        accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.jpg,.jpeg,.png,.gif"
+        onChange={handleFile}/>
+      {value ? (
+        <div className="tg-filedrop-on">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+            <path d="M14 2v6h6M9 15l2 2 4-4"/>
+          </svg>
+          <span>{value}</span>
+          <span className="tg-filedrop-x">Remove</span>
+        </div>
+      ) : (
+        <div className="tg-filedrop-empty">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+          </svg>
+          <span>PDF, DOC/DOCX, XLS/CSV, JPG/JPEG, PNG, GIF</span>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ============================================================
+// ADDRESS AUTOCOMPLETE (Nominatim / OpenStreetMap)
+// ============================================================
+const AddressAutocomplete = ({ value, onChange, onSelect }) => {
+  const [suggestions, setSuggestions] = React.useState([]);
+  const [open, setOpen] = React.useState(false);
+  const timer = React.useRef(null);
+
+  const handleChange = (v) => {
+    onChange(v);
+    clearTimeout(timer.current);
+    if (v.length < 4) { setSuggestions([]); setOpen(false); return; }
+    timer.current = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(v)}&countrycodes=us&limit=6`,
+          { headers: { 'Accept-Language': 'en' } }
+        );
+        const items = await res.json();
+        setSuggestions(items);
+        setOpen(items.length > 0);
+      } catch {}
+    }, 350);
+  };
+
+  const select = (item) => {
+    const a = item.address || {};
+    const street = [a.house_number, a.road].filter(Boolean).join(' ');
+    onSelect({
+      address: street || item.display_name.split(',')[0],
+      city: a.city || a.town || a.village || a.municipality || a.county || '',
+      state: a.state || '',
+      postal: a.postcode || '',
+      country: 'United States',
+    });
+    setSuggestions([]);
+    setOpen(false);
+  };
+
+  return (
+    <div className="addr-wrap">
+      <input className="tg-inp" value={value}
+        onChange={e => handleChange(e.target.value)}
+        onBlur={() => setTimeout(() => setOpen(false), 150)}
+        placeholder="Start typing your street address…"
+        autoComplete="off"/>
+      {open && suggestions.length > 0 && (
+        <div className="addr-suggestions">
+          {suggestions.map((s, i) => (
+            <div key={i} className="addr-suggestion" onMouseDown={() => select(s)}>
+              {s.display_name}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 // ============================================================
 // STAGE 1 — Business & Contact
@@ -1085,8 +1178,10 @@ const Stage2 = ({ data, setData }) => (
         placeholder="e.g. 404 — area code your texts will send from"/>
     </Field>
     <Field label="Business Address (as listed on your IRS EIN letter)" required full>
-      <Input value={data.address} onChange={v=>setData({address:v})}
-        placeholder="Street address from your IRS CP-575 / EIN letter"/>
+      <AddressAutocomplete
+        value={data.address}
+        onChange={v => setData({address: v})}
+        onSelect={fields => setData(fields)}/>
     </Field>
     <Field label="City">
       <Input value={data.city} onChange={v=>setData({city:v})} placeholder="City"/>

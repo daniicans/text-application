@@ -1,0 +1,12 @@
+{
+  "name": "icans-texting-application",
+  "version": "1.0.0",
+  "description": "icans A2P SMS onboarding form",
+  "private": true,
+  "dependencies": {
+    "nodemailer": "^6.9.14"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

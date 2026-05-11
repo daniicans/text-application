@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>icans Texting Application</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+html, body { margin: 0; padding: 0; height: 100%; }
+body { font-family: 'Inter', sans-serif; background: #F4F3F8; overflow: hidden; }
+#scale-stage {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: #F4F3F8;
+}
+#frame {
+  width: 1280px; height: 820px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.10), 0 6px 20px rgba(0,0,0,0.05);
+  overflow: hidden;
+  transform-origin: center center;
+}
+#frame > * { width: 100%; height: 100%; }
+#frame .tg-art { width: 100%; height: 100%; }
+
+/* ============================================================
+   DESIGN SYSTEM
+============================================================ */
+:root {
+  --brand: #3FB94C;
+  --brand-deep: #2E9039;
+  --brand-50: #ECFAEE;
+  --brand-100: #D6F3DA;
+  --ink: #494A7D;
+  --ink-700: #5E5F94;
+  --ink-500: #6E6A93;
+  --ink-300: #B5B2C9;
+  --ink-100: #E8E7EE;
+  --ink-50: #F4F3F8;
+  --bg: #FBFAF9;
+  --surface: #FFFFFF;
+  --line: rgba(73,74,125,0.10);
+  --line-strong: rgba(73,74,125,0.18);
+  --text: #1A1830;
+  --text-muted: #6E6A93;
+  --danger: #C9352B;
+  --tiger: #F47A1F;
+  --tiger-deep: #C75A0E;
+  --shadow-sm: 0 1px 2px rgba(15,23,42,0.04);
+  --shadow: 0 1px 2px rgba(15,23,42,0.04), 0 8px 24px -8px rgba(15,23,42,0.10);
+  --shadow-lg: 0 18px 50px -16px rgba(73,74,125,0.30);
+}
+* { box-sizing: border-box; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; padding: 0; color: inherit; }
+a { color: inherit; text-decoration: none; }
+
+/* ARTBOARD */
+.tg-art {
+  width: 1280px; height: 820px;
+  background: var(--bg);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+  position: relative;
+}
+/* HEADER */
+.tg-hdr {
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: 16px;
+  padding: 12px 28px;
+  background: rgba(251,250,249,0.85);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line);
+}
+.tg-logo { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+.tg-logo-mark {
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--tiger) 0%, var(--tiger-deep) 100%);
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-weight: 700; font-size: 15px;
+  letter-spacing: -0.02em;
+}
+.tg-brand-name { font-size: 15px; color: var(--ink); letter-spacing: -0.01em; }
+.tg-divider { width: 1px; height: 16px; background: var(--line-strong); }
+.tg-product {
+  font-size: 12px; font-weight: 600;
+  color: var(--ink-700);
+  background: var(--ink-50);
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+.tg-hdr-spacer { flex: 1; }
+.tg-hdr-help {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: var(--ink-700);
+  font-size: 13px; font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  white-space: nowrap;
+}
+/* BUTTONS */
+.tg-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  font-size: 13px; font-weight: 600;
+  padding: 10px 18px;
+  border-radius: 999px;
+  transition: all .15s ease;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.tg-btn-primary { background: var(--brand); color: white; }
+.tg-btn-primary:hover { background: var(--brand-deep); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(63,185,76,0.32); }
+.tg-btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+.tg-btn-ghost { background: var(--surface); color: var(--ink-700); border-color: var(--line-strong); }
+.tg-btn-ghost:hover { border-color: var(--ink); color: var(--ink); }
+.tg-btn-large { padding: 13px 22px; font-size: 14px; }
+/* INPUTS */
+.tg-inp, .tg-sel, .tg-txt {
+  width: 100%;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  padding: 10px 13px;
+  border-radius: 10px;
+  transition: border-color .15s ease, box-shadow .15s ease;
+  outline: none;
+}
+.tg-inp::placeholder, .tg-txt::placeholder { color: var(--ink-300); }
+.tg-inp:hover, .tg-sel:hover, .tg-txt:hover { border-color: var(--ink-300); }
+.tg-inp:focus, .tg-sel:focus, .tg-txt:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 4px rgba(63,185,76,0.15);
+}
+.tg-sel {
+  appearance: none;
+  background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236E6A93' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 12px center;
+  padding-right: 32px;
+  cursor: pointer;
+}
+.tg-txt { resize: none; }
+.tg-lbl {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 5px;
+}
+.tg-lbl .req { color: var(--brand-deep); }
+.tg-field { display: flex; flex-direction: column; min-width: 0; }
+.tg-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
+}
+.tg-field-full { grid-column: 1 / -1; }
+/* RADIO */
+.tg-radio-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px;
+}
+.tg-rad {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  padding: 10px 13px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all .15s ease;
+  font-size: 13px; font-weight: 600;
+  color: var(--ink-700);
+}
+.tg-rad:hover { border-color: var(--ink-300); }
+.tg-rad-dot {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid var(--ink-300);
+  flex-shrink: 0;
+  transition: all .15s ease;
+}
+.tg-rad input { display: none; }
+.tg-rad input:checked ~ .tg-rad-dot {
+  border-color: var(--brand);
+  background: var(--brand);
+  box-shadow: inset 0 0 0 3px var(--surface);
+}
+.tg-rad:has(input:checked) {
+  background: var(--brand-50);
+  border-color: var(--brand);
+  color: var(--brand-deep);
+}
+/* FILE DROP */
+.tg-filedrop {
+  border: 1.5px dashed var(--line-strong);
+  border-radius: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: all .15s ease;
+  background: var(--ink-50);
+}
+.tg-filedrop:hover { border-color: var(--brand); background: var(--brand-50); }
+.tg-filedrop-empty {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 12.5px; color: var(--text-muted);
+}
+.tg-filedrop-on {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 12.5px; color: var(--brand-deep); font-weight: 600;
+}
+.tg-filedrop-x {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.tg-fields-divider {
+  grid-column: 1 / -1;
+  height: 1px;
+  background: var(--line);
+  margin: 2px 0;
+}
+
+/* PLAN PICKER */
+.tg-plan-grid { grid-template-columns: repeat(2, 1fr); }
+.tg-plan {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+}
+.tg-plan-body { display: flex; flex-direction: column; gap: 2px; }
+.tg-plan-name { font-size: 14px; font-weight: 700; color: var(--ink); }
+.tg-plan:has(input:checked) .tg-plan-name { color: var(--brand-deep); }
+.tg-plan-sub { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+
+/* ============================================================
+   VARIATION B SIDE RAIL (reused in VariationC)
+============================================================ */
+.vb-main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  gap: 0;
+  min-height: 0;
+}
+.vb-side {
+  background: var(--surface);
+  border-right: 1px solid var(--line);
+  padding: 28px 22px;
+  display: flex; flex-direction: column;
+  gap: 18px;
+}
+.vb-side-eyebrow {
+  font-size: 10px; font-weight: 700;
+  color: var(--brand-deep);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+.vb-side-title {
+  font-size: 18px; font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 0;
+  line-height: 1.15;
+}
+.vb-vsteps {
+  display: flex; flex-direction: column;
+  position: relative;
+}
+.vb-vsteps::before {
+  content: '';
+  position: absolute;
+  left: 13px; top: 14px; bottom: 14px;
+  width: 2px;
+  background: var(--line-strong);
+  z-index: 0;
+}
+.vb-vstep {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 10px 0;
+  position: relative; z-index: 1;
+  text-align: left;
+  cursor: pointer;
+  transition: opacity .2s ease;
+}
+.vb-vstep-num {
+  flex-shrink: 0;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--line-strong);
+  font-size: 12px; font-weight: 700;
+  color: var(--ink-500);
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s ease;
+}
+.vb-vstep-active .vb-vstep-num {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: white;
+  box-shadow: 0 0 0 4px rgba(63,185,76,0.18);
+}
+.vb-vstep-done .vb-vstep-num {
+  background: var(--brand-50);
+  border-color: var(--brand);
+  color: var(--brand-deep);
+}
+.vb-vstep-body { display: flex; flex-direction: column; padding-top: 3px; min-width: 0; }
+.vb-vstep-eyebrow {
+  font-size: 9.5px; font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.vb-vstep-active .vb-vstep-eyebrow { color: var(--brand-deep); }
+.vb-vstep-title {
+  font-size: 13.5px; font-weight: 600;
+  color: var(--ink-500);
+  margin-top: 2px;
+  letter-spacing: -0.01em;
+}
+.vb-vstep-active .vb-vstep-title,
+.vb-vstep-done .vb-vstep-title { color: var(--ink); }
+
+/* ============================================================
+   VARIATION C — FORM STAGES
+============================================================ */
+.vc-main {
+  flex: 1;
+  display: flex; flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+.vc-stage {
+  flex: 1;
+  min-width: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 24px 32px;
+  min-height: 0;
+  position: relative;
+}
+.vc-bg {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  opacity: 0.4; z-index: 0;
+  -webkit-mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, #000 0%, rgba(0,0,0,0.6) 50%, transparent 90%);
+  mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, #000 0%, rgba(0,0,0,0.6) 50%, transparent 90%);
+}
+.vc-card {
+  position: relative; z-index: 1;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 36px 44px;
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 700px;
+  display: flex; flex-direction: column;
+  max-height: 100%;
+  min-height: 0;
+}
+.vc-meta {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 11px; font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.vc-meta .stage {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: var(--brand-deep);
+}
+.vc-meta .stage::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-50);
+}
+.vc-q-title {
+  font-size: 30px; font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: var(--ink);
+  margin: 0 0 10px;
+  text-wrap: balance;
+}
+.vc-q-sub {
+  font-size: 15px; line-height: 1.55;
+  color: var(--text-muted);
+  margin: 0 0 22px;
+  max-width: 580px;
+}
+.vc-q-input {
+  display: flex; flex-direction: column; gap: 10px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.vc-q-input::-webkit-scrollbar { width: 6px; }
+.vc-q-input::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 3px; }
+.vc-q-input .tg-inp, .vc-q-input .tg-sel, .vc-q-input .tg-txt {
+  font-size: 16px; padding: 12px 16px; border-radius: 12px;
+}
+.vc-q-foot {
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--line-strong);
+}
+.vc-q-hint {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--text-muted);
+}
+
+/* WELCOME — VARIATION C */
+.vc-welcome {
+  flex: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 24px 32px;
+  position: relative;
+  overflow: hidden;
+}
+.vc-welcome-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  padding: 44px 56px;
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 760px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.vc-welcome-card::before {
+  content: '';
+  position: absolute; top: -100px; right: -100px;
+  width: 280px; height: 280px;
+  background: radial-gradient(circle, rgba(63,185,76,0.18), transparent 70%);
+  pointer-events: none;
+}
+/* Two-col welcome layout */
+.vc-welcome-card-twocol {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 36px;
+  align-items: center;
+  text-align: left;
+}
+.vc-welcome-card-twocol .vc-welcome-logo { margin: 0 0 14px; }
+.vc-welcome-card-twocol .vc-welcome-vchips { grid-template-columns: repeat(2, 1fr); }
+.vc-welcome-card-twocol .vc-welcome-cta-row { justify-content: flex-start; }
+
+.vc-welcome-logo {
+  width: 56px; height: 56px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--tiger) 0%, var(--tiger-deep) 100%);
+  color: white;
+  font-size: 26px; font-weight: 700;
+  margin: 0 auto 16px;
+  display: flex; align-items: center; justify-content: center;
+  letter-spacing: -0.02em;
+  box-shadow: 0 10px 24px -8px rgba(244,122,31,0.45);
+}
+.vc-welcome-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 11px; font-weight: 700;
+  color: var(--brand-deep);
+  background: var(--brand-50);
+  padding: 5px 14px;
+  border-radius: 999px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.vc-welcome-title {
+  font-size: 40px; font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+  color: var(--ink);
+  margin: 0 0 14px;
+  text-wrap: balance;
+}
+.vc-welcome-title em {
+  font-style: italic; font-weight: 500;
+  color: var(--brand-deep);
+}
+.vc-welcome-sub {
+  font-size: 15px; line-height: 1.55;
+  color: var(--text-muted);
+  margin: 0 auto 24px;
+  max-width: 540px;
+}
+.vc-welcome-vchips {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 26px;
+  text-align: left;
+}
+.vc-welcome-vchip {
+  background: var(--ink-50);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+.vc-welcome-vchip .v {
+  font-size: 18px; font-weight: 700;
+  color: var(--brand-deep);
+  letter-spacing: -0.02em;
+}
+.vc-welcome-vchip .l {
+  font-size: 11.5px; color: var(--text-muted);
+  margin-top: 4px; line-height: 1.3;
+}
+.vc-welcome-cta-row {
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+}
+
+/* SUCCESS */
+.tg-success {
+  flex: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 32px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.tg-success-mark {
+  width: 76px; height: 76px;
+  border-radius: 50%;
+  background: var(--brand-50);
+  color: var(--brand-deep);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 18px;
+  border: 4px solid var(--brand-100);
+  animation: tg-pop 0.6s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes tg-pop {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.tg-success h1 {
+  font-size: 32px; font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--ink); margin: 0 0 10px;
+}
+.tg-success p {
+  font-size: 15px; color: var(--text-muted); line-height: 1.55;
+  margin: 0 auto 26px; max-width: 500px;
+}
+.tg-success-next {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 12px; max-width: 700px;
+  margin-bottom: 24px; text-align: left;
+}
+.tg-success-step {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px 18px;
+  box-shadow: var(--shadow-sm);
+}
+.tg-success-step-num {
+  font-size: 11px; font-weight: 700;
+  color: var(--brand-deep);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.tg-success-step-title { font-size: 14px; font-weight: 700; color: var(--ink); margin: 0 0 4px; }
+.tg-success-step-desc { font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.45; }
+.tg-confetti { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.tg-confetti span {
+  position: absolute; width: 8px; height: 14px;
+  top: -20px; border-radius: 2px;
+  animation: tg-fall 3s linear forwards;
+}
+@keyframes tg-fall {
+  to { transform: translateY(900px) rotate(720deg); opacity: 0; }
+}
+
+/* ============================================================
+   ANIMATIONS — Aurora + Phone
+============================================================ */
+@keyframes aurora-1 {
+  0%, 100% { transform: translate(0,0) scale(1); }
+  33%       { transform: translate(60px,-30px) scale(1.1); }
+  66%       { transform: translate(-40px,50px) scale(0.95); }
+}
+@keyframes aurora-2 {
+  0%, 100% { transform: translate(0,0) scale(1); }
+  33%       { transform: translate(-50px,40px) scale(0.9); }
+  66%       { transform: translate(70px,-20px) scale(1.15); }
+}
+@keyframes aurora-3 {
+  0%, 100% { transform: translate(0,0) scale(1); opacity: .6; }
+  50%       { transform: translate(40px,-40px) scale(1.2); opacity: .9; }
+}
+.vc-welcome-aurora {
+  position: absolute; inset: 0;
+  pointer-events: none; overflow: hidden;
+  z-index: 0;
+}
+.vc-welcome-aurora .blob {
+  position: absolute; border-radius: 50%;
+  filter: blur(80px); will-change: transform;
+}
+.vc-welcome-aurora .blob-1 {
+  top: 5%; left: 8%;
+  width: 480px; height: 480px;
+  background: radial-gradient(circle, rgba(63,185,76,0.45), transparent 65%);
+  animation: aurora-1 20s ease-in-out infinite;
+}
+.vc-welcome-aurora .blob-2 {
+  bottom: 5%; right: 10%;
+  width: 540px; height: 540px;
+  background: radial-gradient(circle, rgba(73,74,125,0.30), transparent 65%);
+  animation: aurora-2 24s ease-in-out infinite;
+}
+.vc-welcome-aurora .blob-3 {
+  top: 50%; left: 60%;
+  width: 320px; height: 320px;
+  background: radial-gradient(circle, rgba(244,122,31,0.22), transparent 65%);
+  animation: aurora-3 17s ease-in-out infinite;
+}
+
+/* Phone mock */
+.phone-mock {
+  width: 280px; height: 540px;
+  background: linear-gradient(170deg, #1A1830 0%, #2C2A4D 100%);
+  border-radius: 36px;
+  padding: 8px;
+  box-shadow:
+    0 30px 60px -20px rgba(73,74,125,0.45),
+    0 0 0 1px rgba(255,255,255,0.06) inset,
+    0 2px 0 rgba(255,255,255,0.10) inset;
+  position: relative;
+}
+.phone-mock::before {
+  content: '';
+  position: absolute;
+  right: -2px; top: 110px;
+  width: 3px; height: 56px;
+  background: #1A1830;
+  border-radius: 2px;
+}
+.phone-screen {
+  width: 100%; height: 100%;
+  background: linear-gradient(180deg, #FBFAF9 0%, #F4F3F8 100%);
+  border-radius: 28px;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  position: relative;
+}
+.phone-notch {
+  position: absolute;
+  top: 8px; left: 50%;
+  transform: translateX(-50%);
+  width: 86px; height: 22px;
+  background: #1A1830;
+  border-radius: 999px;
+  z-index: 5;
+}
+.phone-status {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 22px 8px;
+  font-size: 11px; font-weight: 700;
+  color: #1A1830;
+}
+.phone-status .icons { display: inline-flex; gap: 4px; align-items: center; }
+.phone-status .icons svg { display: block; }
+.phone-conv-header {
+  flex-shrink: 0;
+  display: flex; flex-direction: column;
+  align-items: center;
+  padding: 8px 16px 12px;
+  border-bottom: 0.5px solid rgba(73,74,125,0.12);
+  gap: 4px;
+}
+.phone-avatar {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid #E5E7EB;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 800;
+  letter-spacing: -0.04em;
+  margin-bottom: 2px;
+}
+.phone-avatar .oc-o { color: #15171C; }
+.phone-avatar .oc-c { color: #1FA8E8; }
+.phone-time-divider {
+  align-self: center;
+  font-size: 10.5px; font-weight: 600;
+  color: #8A8A92;
+  letter-spacing: 0.02em;
+  margin: 8px 0 4px;
+  animation: phone-bubble-in 0.35s cubic-bezier(0.34,1.56,0.64,1) backwards;
+}
+.phone-conv-name {
+  font-size: 13px; font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.phone-msgs {
+  flex: 1;
+  display: flex; flex-direction: column;
+  gap: 4px;
+  padding: 14px 14px 10px;
+  overflow: hidden;
+}
+.phone-bubble {
+  max-width: 78%;
+  padding: 8px 12px;
+  border-radius: 18px;
+  font-size: 12.5px; line-height: 1.4;
+  animation: phone-bubble-in 0.35s cubic-bezier(0.34,1.56,0.64,1) backwards;
+  word-wrap: break-word;
+}
+.phone-bubble.from-them {
+  background: #E8E7EE;
+  color: #1A1830;
+  align-self: flex-start;
+  border-bottom-left-radius: 5px;
+}
+.phone-bubble.from-us {
+  background: var(--brand);
+  color: white;
+  align-self: flex-end;
+  border-bottom-right-radius: 5px;
+  box-shadow: 0 2px 8px -2px rgba(63,185,76,0.45);
+}
+.phone-bubble.is-typing {
+  background: var(--brand);
+  align-self: flex-end;
+  border-bottom-right-radius: 5px;
+  border-bottom-left-radius: 18px;
+  padding: 10px 14px;
+  display: inline-flex;
+  gap: 4px;
+  box-shadow: 0 2px 8px -2px rgba(63,185,76,0.45);
+}
+.phone-bubble.is-typing span {
+  background: rgba(255,255,255,0.85) !important;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  animation: typing-bounce 1.2s infinite;
+}
+.phone-bubble.is-typing span:nth-child(2) { animation-delay: 0.15s; }
+.phone-bubble.is-typing span:nth-child(3) { animation-delay: 0.30s; }
+@keyframes phone-bubble-in {
+  0%   { opacity: 0; transform: translateY(6px) scale(0.92); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes typing-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+  30%            { transform: translateY(-4px); opacity: 1; }
+}
+.phone-input {
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 10px 12px;
+  border-top: 0.5px solid rgba(73,74,125,0.10);
+}
+.phone-input-field {
+  flex: 1; height: 28px;
+  background: rgba(73,74,125,0.06);
+  border-radius: 999px;
+  padding: 0 12px;
+  display: flex; align-items: center;
+  font-size: 11px;
+  color: rgba(73,74,125,0.45);
+}
+.phone-input-send {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: white;
+  display: flex; align-items: center; justify-content: center;
+}
+.phone-frame-c {
+  position: relative;
+}
+.phone-frame-c .phone-mock {
+  transform: rotate(3deg);
+}
+.phone-frame-c::after {
+  content: '🎉 Approved';
+  position: absolute;
+  bottom: 30px; right: -30px;
+  background: white;
+  border: 1px solid var(--brand-100);
+  color: var(--brand-deep);
+  font-size: 11px; font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+  animation: phone-bubble-in 0.4s 1.2s cubic-bezier(0.34,1.56,0.64,1) backwards;
+}
+
+/* Staggered entrance */
+@keyframes welcome-rise {
+  0%   { opacity: 0; transform: translateY(14px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.welcome-rise { animation: welcome-rise 0.6s cubic-bezier(0.16,1,0.3,1) backwards; }
+.welcome-rise.d1 { animation-delay: 0.05s; }
+.welcome-rise.d2 { animation-delay: 0.15s; }
+.welcome-rise.d3 { animation-delay: 0.25s; }
+.welcome-rise.d4 { animation-delay: 0.35s; }
+.welcome-rise.d5 { animation-delay: 0.45s; }
+</style>
+</head>
+<body>
+<div id="scale-stage">
+  <div id="frame">
+    <div id="root"></div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
+
+<script type="text/babel" data-presets="env,react">
+
+// ============================================================
+// DATA & HELPERS
+// ============================================================
+const STAGES = [
+  { num: 1, eyebrow: 'Step 01', title: 'Business & Contact',
+    sub: 'The business that wants to text, and who runs the account.' },
+  { num: 2, eyebrow: 'Step 02', title: 'Business Address',
+    sub: 'Desired area code, the business address on your IRS EIN letter, and your text plan.' },
+];
+
+function emptyData() {
+  return {
+    businessName: '', website: '', ein: '', irsLetter: '',
+    firstName: '', lastName: '', phone: '', accountEmail: '',
+    areaCode: '', address: '', city: '', state: '', country: '', postal: '',
+    plan: '', consent: false,
+  };
+}
+
+function sampleData() {
+  return {
+    businessName: 'OnlyCans Dumpster Rental, LLC',
+    website: 'onlycans.com',
+    ein: '12-3456789',
+    irsLetter: 'IRS-CP575-OnlyCans.pdf',
+    firstName: 'Mariana',
+    lastName: 'Reyes',
+    phone: '(404) 555-0182',
+    accountEmail: 'mariana@onlycans.com',
+    areaCode: '404',
+    address: '1200 Peachtree St NE, Atlanta, GA',
+    city: 'Atlanta',
+    state: 'GA',
+    country: 'United States',
+    postal: '30309',
+    plan: 'plus',
+    consent: true,
+  };
+}
+
+function stageProgress(data, stage) {
+  if (stage === 1) {
+    const f = ['businessName','website','ein','firstName','lastName','phone','accountEmail'];
+    return f.filter(k => !!data[k]).length / f.length;
+  }
+  if (stage === 2) {
+    const f = ['areaCode','address','city','state','country','postal','plan'];
+    return f.filter(k => !!data[k]).length / f.length;
+  }
+  return 0;
+}
+
+function overallProgress(data) {
+  return ([1,2].map(s => stageProgress(data, s)).reduce((a,b) => a+b,0)) / 2;
+}
+
+// ============================================================
+// FORM PRIMITIVES
+// ============================================================
+const Field = ({ label, required, children, full }) => (
+  <div className={'tg-field' + (full ? ' tg-field-full' : '')}>
+    <label className="tg-lbl">{label}{required && <span className="req">*</span>}</label>
+    {children}
+  </div>
+);
+
+const Input = ({ value, onChange, placeholder, type='text' }) => (
+  <input className="tg-inp" type={type} value={value || ''}
+    onChange={e => onChange(e.target.value)} placeholder={placeholder}/>
+);
+
+const Select = ({ value, onChange, children }) => (
+  <select className="tg-sel" value={value || ''}
+    onChange={e => onChange(e.target.value)}>{children}</select>
+);
+
+const FileDrop = ({ value, onChange }) => (
+  <div className="tg-filedrop" onClick={() => onChange(value ? '' : 'IRS-CP575-OnlyCans.pdf')}>
+    {value ? (
+      <div className="tg-filedrop-on">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+          <path d="M14 2v6h6M9 15l2 2 4-4"/>
+        </svg>
+        <span>{value}</span>
+        <span className="tg-filedrop-x">Remove</span>
+      </div>
+    ) : (
+      <div className="tg-filedrop-empty">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+        </svg>
+        <span>PDF, DOC/DOCX, XLS/CSV, JPG/JPEG, PNG, GIF</span>
+      </div>
+    )}
+  </div>
+);
+
+// ============================================================
+// STAGE 1 — Business & Contact
+// ============================================================
+const Stage1 = ({ data, setData }) => (
+  <div className="tg-fields">
+    <Field label="Business Name" required full>
+      <Input value={data.businessName} onChange={v=>setData({businessName:v})} placeholder="Your Business Name"/>
+    </Field>
+    <Field label="Website" required>
+      <Input value={data.website} onChange={v=>setData({website:v})} placeholder="Web URL goes here"/>
+    </Field>
+    <Field label="EIN Number" required>
+      <Input value={data.ein} onChange={v=>setData({ein:v})} placeholder="EIN Number"/>
+    </Field>
+    <Field label="IRS Verification Letter Upload" full>
+      <FileDrop value={data.irsLetter} onChange={v=>setData({irsLetter:v})}/>
+    </Field>
+    <div className="tg-fields-divider"/>
+    <Field label="First Name">
+      <Input value={data.firstName} onChange={v=>setData({firstName:v})} placeholder="First Name"/>
+    </Field>
+    <Field label="Last Name">
+      <Input value={data.lastName} onChange={v=>setData({lastName:v})} placeholder="Last Name"/>
+    </Field>
+    <Field label="Phone">
+      <Input value={data.phone} onChange={v=>setData({phone:v})} placeholder="Phone"/>
+    </Field>
+    <Field label="Account Email" required>
+      <Input value={data.accountEmail} onChange={v=>setData({accountEmail:v})} placeholder="Account Email"/>
+    </Field>
+  </div>
+);
+
+// ============================================================
+// STAGE 2 — Business Address + Plan
+// ============================================================
+const Stage2 = ({ data, setData }) => (
+  <div className="tg-fields">
+    <Field label="Desired Area Code for your texting phone number" required full>
+      <Input value={data.areaCode} onChange={v=>setData({areaCode:v})}
+        placeholder="e.g. 404 — area code your texts will send from"/>
+    </Field>
+    <Field label="Business Address (as listed on your IRS EIN letter)" required full>
+      <Input value={data.address} onChange={v=>setData({address:v})}
+        placeholder="Street address from your IRS CP-575 / EIN letter"/>
+    </Field>
+    <Field label="City">
+      <Input value={data.city} onChange={v=>setData({city:v})} placeholder="City"/>
+    </Field>
+    <Field label="State">
+      <Input value={data.state} onChange={v=>setData({state:v})} placeholder="State"/>
+    </Field>
+    <Field label="Country">
+      <Select value={data.country} onChange={v=>setData({country:v})}>
+        <option value="">Country</option>
+        <option>United States</option>
+        <option>Canada</option>
+      </Select>
+    </Field>
+    <Field label="Postal Code">
+      <Input value={data.postal} onChange={v=>setData({postal:v})} placeholder="Postal Code"/>
+    </Field>
+    <div className="tg-fields-divider"/>
+    <Field label="Text Subscription" required full>
+      <div className="tg-radio-grid tg-plan-grid">
+        {[
+          { v: 'growth', l: 'Growth', price: '$159/month', sub: '1,000 Messages' },
+          { v: 'plus',   l: 'Plus',   price: '$199/month', sub: '2,000 Messages' },
+        ].map(o => {
+          const on = data.plan === o.v;
+          return (
+            <label key={o.v} className="tg-rad tg-plan"
+              style={on ? {background:'var(--brand-50)', borderColor:'var(--brand)'} : null}>
+              <input type="radio" checked={on} onChange={() => setData({plan: o.v})}/>
+              <span className="tg-rad-dot"
+                style={on ? {borderColor:'var(--brand)', background:'var(--brand)', boxShadow:'inset 0 0 0 3px white'} : null}/>
+              <div className="tg-plan-body">
+                <div className="tg-plan-name">{o.l} — {o.price}</div>
+                <div className="tg-plan-sub">{o.sub}</div>
+              </div>
+            </label>
+          );
+        })}
+      </div>
+    </Field>
+  </div>
+);
+
+const STAGE_COMPONENTS = [null, Stage1, Stage2];
+
+// ============================================================
+// PHONE CONVERSATION MOCK
+// ============================================================
+const PHONE_SCRIPT = [
+  { kind: 'time',   text: '11:04 AM' },
+  { kind: 'them',   text: 'Hi! Your 20 Yard Dumpster is on the way! Please make sure the area is ready for delivery. Estimated time of Arrival is 23 minutes.' },
+  { kind: 'typing' },
+  { kind: 'us',     text: 'Perfect timing! Moving my car now, Thank you!' },
+  { kind: 'time',   text: '11:33 AM' },
+  { kind: 'them',   text: 'Your 20 Yard Dumpster has been delivered. Thank you for choosing OnlyCans!' },
+];
+const PHONE_DELAYS = [600, 2400, 1100, 1900, 1100, 2600];
+const PHONE_RESET_DELAY = 2200;
+
+const PhoneConversation = () => {
+  const [step, setStep] = React.useState(0);
+  const [tick, setTick] = React.useState(0);
+
+  React.useEffect(() => {
+    if (step >= PHONE_SCRIPT.length) {
+      const t = setTimeout(() => { setStep(0); setTick(k => k+1); }, PHONE_RESET_DELAY);
+      return () => clearTimeout(t);
+    }
+    const t = setTimeout(() => setStep(s => s+1), PHONE_DELAYS[step]);
+    return () => clearTimeout(t);
+  }, [step]);
+
+  const rawVisible = PHONE_SCRIPT.slice(0, step);
+  const visible = rawVisible.filter((m, i) => {
+    if (m.kind !== 'typing') return true;
+    const next = rawVisible[i+1];
+    return !next || next.kind === 'typing';
+  });
+
+  return (
+    <div className="phone-mock">
+      <div className="phone-screen">
+        <div className="phone-notch"/>
+        <div className="phone-status">
+          <span>9:41</span>
+          <span className="icons">
+            <svg width="14" height="10" viewBox="0 0 14 10" fill="currentColor">
+              <rect x="0" y="6" width="2" height="4" rx="0.5"/>
+              <rect x="4" y="4" width="2" height="6" rx="0.5"/>
+              <rect x="8" y="2" width="2" height="8" rx="0.5"/>
+              <rect x="12" y="0" width="2" height="10" rx="0.5"/>
+            </svg>
+            <svg width="14" height="10" viewBox="0 0 14 10" fill="none" stroke="currentColor" strokeWidth="1.2">
+              <path d="M1 4 a6 6 0 0 1 12 0" strokeLinecap="round"/>
+              <path d="M3.5 6 a3.5 3.5 0 0 1 7 0" strokeLinecap="round"/>
+              <circle cx="7" cy="8" r="0.8" fill="currentColor"/>
+            </svg>
+            <svg width="22" height="10" viewBox="0 0 22 10" fill="none" stroke="currentColor" strokeWidth="0.8">
+              <rect x="0.5" y="0.5" width="18" height="9" rx="2"/>
+              <rect x="2" y="2" width="14" height="6" rx="0.5" fill="currentColor"/>
+              <rect x="20" y="3" width="1.5" height="4" rx="0.5" fill="currentColor"/>
+            </svg>
+          </span>
+        </div>
+        <div className="phone-conv-header">
+          <div className="phone-avatar">
+            <span className="oc-o">O</span><span className="oc-c">C</span>
+          </div>
+          <div className="phone-conv-name">OnlyCans</div>
+        </div>
+        <div className="phone-msgs" key={tick}>
+          {visible.map((m, i) => {
+            if (m.kind === 'typing')
+              return <div key={i} className="phone-bubble is-typing"><span/><span/><span/></div>;
+            if (m.kind === 'time')
+              return <div key={i} className="phone-time-divider">{m.text}</div>;
+            return (
+              <div key={i} className={'phone-bubble ' + (m.kind === 'us' ? 'from-us' : 'from-them')}>
+                {m.text}
+              </div>
+            );
+          })}
+        </div>
+        <div className="phone-input">
+          <div className="phone-input-field">iMessage</div>
+          <div className="phone-input-send">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 19V5M5 12l7-7 7 7"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const AuroraBg = () => (
+  <div className="vc-welcome-aurora" aria-hidden="true">
+    <div className="blob blob-1"/>
+    <div className="blob blob-2"/>
+    <div className="blob blob-3"/>
+  </div>
+);
+
+// ============================================================
+// SHARED HEADER COMPONENTS
+// ============================================================
+const TigerLogo = () => (
+  <div className="tg-logo">
+    <div className="tg-logo-mark">i</div>
+    <div className="tg-brand-name">icans</div>
+    <span className="tg-divider"/>
+    <span className="tg-product">Texting Application</span>
+  </div>
+);
+
+const HelpBtn = () => (
+  <button className="tg-hdr-help">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/>
+      <circle cx="12" cy="17" r=".5" fill="currentColor"/>
+    </svg>
+    Help
+  </button>
+);
+
+// ============================================================
+// WELCOME SCREEN STATS
+// ============================================================
+const WELCOME_VPROPS = [
+  { v: '6 min',   l: 'Average time to complete' },
+  { v: '< 4 days', l: 'Carrier review window' },
+  { v: '93%',     l: 'First-pass approval rate' },
+  { v: '$0',      l: 'Setup fees, ever' },
+];
+
+// ============================================================
+// WELCOME C
+// ============================================================
+const WelcomeC = ({ onStart }) => (
+  <div className="tg-art" data-screen="welcome">
+    <header className="tg-hdr">
+      <TigerLogo/><div className="tg-hdr-spacer"/><HelpBtn/>
+    </header>
+    <main className="vc-main">
+      <div className="vc-welcome">
+        <AuroraBg/>
+        <div className="vc-welcome-card vc-welcome-card-twocol" style={{position:'relative', zIndex:1}}>
+          <div>
+            <div className="vc-welcome-logo welcome-rise d1">i</div>
+            <span className="vc-welcome-eyebrow welcome-rise d1">Texting · Account add-on</span>
+            <h1 className="vc-welcome-title welcome-rise d2">
+              Apply for Texting <em>in Just Two Quick Steps</em>
+            </h1>
+            <p className="vc-welcome-sub welcome-rise d3">
+              One question at a time. We'll handle carrier registration so you can focus on what to say, not who to send it through.
+            </p>
+            <div className="vc-welcome-vchips welcome-rise d4">
+              {WELCOME_VPROPS.map((p, i) => (
+                <div key={i} className="vc-welcome-vchip">
+                  <div className="v">{p.v}</div>
+                  <div className="l">{p.l}</div>
+                </div>
+              ))}
+            </div>
+            <div className="vc-welcome-cta-row welcome-rise d5">
+              <button className="tg-btn tg-btn-primary tg-btn-large" onClick={onStart}>
+                Begin Application →
+              </button>
+            </div>
+          </div>
+          <div className="phone-frame-c welcome-rise d2">
+            <PhoneConversation/>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+);
+
+// ============================================================
+// SUCCESS SCREEN
+// ============================================================
+const SuccessScreen = ({ data }) => {
+  const [confetti] = React.useState(() => {
+    const colors = ['#3FB94C','#494A7D','#F47A1F','#FFD16C','#66D873'];
+    return Array.from({length: 60}).map((_, i) => ({
+      left: Math.random() * 100,
+      delay: Math.random() * 1.5,
+      color: colors[i % colors.length],
+      rotate: Math.random() * 360,
+      duration: 2.4 + Math.random() * 1.4,
+    }));
+  });
+
+  return (
+    <div className="tg-art" data-screen="success">
+      <header className="tg-hdr">
+        <TigerLogo/><div className="tg-hdr-spacer"/><HelpBtn/>
+      </header>
+      <main className="tg-success">
+        <div className="tg-confetti">
+          {confetti.map((c, i) => (
+            <span key={i} style={{
+              left: c.left + '%',
+              background: c.color,
+              animationDelay: c.delay + 's',
+              animationDuration: c.duration + 's',
+              transform: `rotate(${c.rotate}deg)`
+            }}/>
+          ))}
+        </div>
+        <div className="tg-success-mark">
+          <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 12l5 5L20 7"/>
+          </svg>
+        </div>
+        <h1>Your Application is in.</h1>
+        <p>
+          We've sent a confirmation to <strong>{data.accountEmail || 'your email'}</strong>.
+          Carrier review starts now — most applications clear within 3–4 days.
+        </p>
+        <div className="tg-success-next">
+          <div className="tg-success-step">
+            <div className="tg-success-step-num">Right now</div>
+            <h3 className="tg-success-step-title">Compliance Pre-Check</h3>
+            <p className="tg-success-step-desc">
+              Our team reviews your sample messages and opt-in flow. We'll flag anything carriers might reject.
+            </p>
+          </div>
+          <div className="tg-success-step">
+            <div className="tg-success-step-num">In 3–4 days</div>
+            <h3 className="tg-success-step-title">Carrier Registration</h3>
+            <p className="tg-success-step-desc">
+              Your phone number is registered with all major US carriers under your business profile.
+            </p>
+          </div>
+          <div className="tg-success-step">
+            <div className="tg-success-step-num">When approved</div>
+            <h3 className="tg-success-step-title">Texting Goes Live</h3>
+            <p className="tg-success-step-desc">
+              A "Send a text" button appears in your icans dashboard. Send your first message right away.
+            </p>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+};
+
+// ============================================================
+// PDF GENERATOR
+// ============================================================
+function generateApplicationPDF(data) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'letter' });
+  const W = 215.9;
+  const MARGIN = 18;
+  let y = 0;
+
+  // Header bar
+  doc.setFillColor(73, 74, 125);
+  doc.rect(0, 0, W, 28, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(16);
+  doc.setFont('helvetica', 'bold');
+  doc.text('icans · Texting Application', MARGIN, 17);
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Submitted ' + new Date().toLocaleString(), W - MARGIN, 17, { align: 'right' });
+
+  y = 40;
+
+  const sectionHeader = (title) => {
+    doc.setFillColor(236, 250, 238);
+    doc.rect(MARGIN - 2, y - 5, W - (MARGIN * 2) + 4, 9, 'F');
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(46, 144, 57);
+    doc.text(title.toUpperCase(), MARGIN, y + 0.5);
+    doc.setTextColor(26, 24, 48);
+    y += 11;
+  };
+
+  const row = (label, value) => {
+    if (!value) return;
+    doc.setFontSize(9.5);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(73, 74, 125);
+    doc.text(label, MARGIN, y);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(26, 24, 48);
+    const lines = doc.splitTextToSize(String(value), W - MARGIN - 78);
+    doc.text(lines, 78, y);
+    y += lines.length > 1 ? lines.length * 5.5 + 1 : 7;
+  };
+
+  const divider = () => {
+    doc.setDrawColor(228, 226, 238);
+    doc.setLineWidth(0.3);
+    doc.line(MARGIN, y, W - MARGIN, y);
+    y += 5;
+  };
+
+  // Section 1
+  sectionHeader('Business & Contact');
+  row('Business Name', data.businessName);
+  row('Website', data.website);
+  row('EIN Number', data.ein);
+  row('IRS Letter', data.irsLetter || 'Not uploaded');
+  divider();
+  row('First Name', data.firstName);
+  row('Last Name', data.lastName);
+  row('Phone', data.phone);
+  row('Account Email', data.accountEmail);
+
+  y += 4;
+
+  // Section 2
+  sectionHeader('Business Address');
+  row('Desired Area Code', data.areaCode);
+  row('Business Address', data.address);
+  row('City', data.city);
+  row('State', data.state);
+  row('Country', data.country);
+  row('Postal Code', data.postal);
+
+  y += 4;
+
+  // Section 3
+  sectionHeader('Text Subscription');
+  const planLabel = data.plan === 'growth'
+    ? 'Growth — $159/month · 1,000 Messages'
+    : data.plan === 'plus'
+      ? 'Plus — $199/month · 2,000 Messages'
+      : data.plan || '—';
+  row('Selected Plan', planLabel);
+
+  // Footer
+  const pageH = 279.4;
+  doc.setFillColor(244, 243, 248);
+  doc.rect(0, pageH - 18, W, 18, 'F');
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(110, 106, 147);
+  doc.text('icans.io  ·  Texting Application  ·  Confidential — for icans staff only', MARGIN, pageH - 8);
+
+  // Return raw base64 (no data-URI prefix)
+  return doc.output('datauristring').split(',')[1];
+}
+
+// ============================================================
+// VARIATION C — Conversational + B's left-rail stepper
+// ============================================================
+const useTextingForm = (initialStage = 0, initialData = null) => {
+  const [stage, setStage] = React.useState(initialStage);
+  const [data, setDataRaw] = React.useState(() => initialData || emptyData());
+  const setData = patch => setDataRaw(d => ({ ...d, ...patch }));
+  const next = () => setStage(s => Math.min(s+1, 3));
+  const prev = () => setStage(s => Math.max(s-1, 0));
+  return { stage, setStage, data, setData, next, prev };
+};
+
+const VariationC = ({ initialStage = 0, initialData = null }) => {
+  const { stage, setStage, data, setData, next, prev } = useTextingForm(initialStage, initialData);
+  const [submitting, setSubmitting] = React.useState(false);
+  const [submitError, setSubmitError] = React.useState(null);
+
+  const handleSubmit = React.useCallback(async () => {
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      let pdfBase64 = null;
+      if (window.jspdf) {
+        try { pdfBase64 = generateApplicationPDF(data); } catch (e) { /* non-fatal */ }
+      }
+      const res = await fetch('/api/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data, pdfBase64 }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `Server error ${res.status}`);
+      }
+      setStage(3);
+    } catch (err) {
+      setSubmitError(err.message || 'Submission failed. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  }, [data, setStage]);
+
+  if (stage === 0) return <WelcomeC onStart={() => setStage(1)}/>;
+  if (stage === 3) return <SuccessScreen data={data}/>;
+
+  const StageBody = STAGE_COMPONENTS[stage];
+  const meta = STAGES[stage-1];
+
+  return (
+    <div className="tg-art" data-screen={`stage-${stage}`}>
+      <header className="tg-hdr">
+        <TigerLogo/>
+        <div className="tg-hdr-spacer"/>
+        <HelpBtn/>
+      </header>
+
+      <main className="vb-main">
+        {/* Left rail stepper */}
+        <aside className="vb-side">
+          <div>
+            <div className="vb-side-eyebrow">Application</div>
+            <h2 className="vb-side-title">Enable Texting<br/>on your Account</h2>
+          </div>
+          <div className="vb-vsteps">
+            {STAGES.map((s, i) => {
+              const idx = i + 1;
+              const cls = idx === stage
+                ? 'vb-vstep vb-vstep-active'
+                : idx < stage
+                  ? 'vb-vstep vb-vstep-done'
+                  : 'vb-vstep';
+              return (
+                <button key={s.num} className={cls} onClick={() => !submitting && setStage(idx)}>
+                  <div className="vb-vstep-num">
+                    {idx < stage
+                      ? <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                          <path d="M5 12l5 5L20 7"/>
+                        </svg>
+                      : idx}
+                  </div>
+                  <div className="vb-vstep-body">
+                    <span className="vb-vstep-eyebrow">{s.eyebrow}</span>
+                    <span className="vb-vstep-title">{s.title}</span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </aside>
+
+        {/* Form stage area */}
+        <div className="vc-stage">
+          <svg className="vc-bg" viewBox="0 0 800 600" preserveAspectRatio="none">
+            <circle cx="200" cy="180" r="160" fill="rgba(63,185,76,0.18)"/>
+            <circle cx="650" cy="450" r="220" fill="rgba(73,74,125,0.10)"/>
+            <circle cx="500" cy="120" r="80" fill="rgba(244,122,31,0.10)"/>
+          </svg>
+          <div className="vc-card">
+            <div className="vc-meta">
+              <span className="stage">{meta.eyebrow}</span>
+            </div>
+            <h1 className="vc-q-title">{meta.title}</h1>
+            <p className="vc-q-sub">{meta.sub}</p>
+            <div className="vc-q-input">
+              <StageBody data={data} setData={setData}/>
+            </div>
+            {submitError && (
+              <div style={{
+                marginTop: '12px', padding: '10px 14px',
+                background: '#FEF2F2', border: '1px solid #FCA5A5',
+                borderRadius: '10px', fontSize: '13px', color: '#B91C1C',
+              }}>
+                {submitError}
+              </div>
+            )}
+            <div className="vc-q-foot">
+              <span className="vc-q-hint">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2"/>
+                  <path d="M7 11V7a5 5 0 0110 0v4"/>
+                </svg>
+                Saved automatically · 256-bit encrypted
+              </span>
+              <div style={{display:'flex', gap:'10px'}}>
+                {stage > 1 && (
+                  <button className="tg-btn tg-btn-ghost" onClick={prev} disabled={submitting}>Back</button>
+                )}
+                <button
+                  className="tg-btn tg-btn-primary"
+                  onClick={stage === 2 ? handleSubmit : next}
+                  disabled={submitting}
+                  style={submitting ? {opacity:0.7, cursor:'wait'} : null}
+                >
+                  {stage === 2
+                    ? (submitting ? 'Submitting…' : 'Submit application')
+                    : 'Continue'} {!submitting && '→'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+};
+
+// ============================================================
+// MAIN APP
+// ============================================================
+const App = () => {
+  return <VariationC initialStage={0} initialData={null}/>;
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+
+// Letterbox-scale the 1280×820 stage to whatever viewport we land in
+function fit() {
+  const s = Math.min(window.innerWidth / 1280, window.innerHeight / 820, 1);
+  const f = document.getElementById('frame');
+  if (f) f.style.transform = `scale(${s})`;
+}
+window.addEventListener('resize', fit);
+fit();
+
+</script>
+</body>
+</html>

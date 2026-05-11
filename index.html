@@ -980,7 +980,7 @@ const STAGES = [
 
 function emptyData() {
   return {
-    businessName: '', website: '', ein: '', irsLetter: '',
+    businessName: '', website: '', ein: '', irsLetter: '', irsLetterBase64: '', irsLetterMime: '',
     firstName: '', lastName: '', phone: '', accountEmail: '',
     areaCode: '', address: '', city: '', state: '', country: 'United States', postal: '',
     plan: '', consent: false,
@@ -1044,14 +1044,21 @@ const Select = ({ value, onChange, children }) => (
     onChange={e => onChange(e.target.value)}>{children}</select>
 );
 
-const FileDrop = ({ value, onChange }) => {
+const FileDrop = ({ value, onChange, onFileData }) => {
   const ref = React.useRef();
   const handleFile = (e) => {
     const file = e.target.files[0];
-    if (file) onChange(file.name);
+    if (!file) return;
+    onChange(file.name);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result.split(',')[1];
+      onFileData(base64, file.type);
+    };
+    reader.readAsDataURL(file);
   };
   return (
-    <div className="tg-filedrop" onClick={() => value ? onChange('') : ref.current.click()}>
+    <div className="tg-filedrop" onClick={() => value ? (onChange(''), onFileData('', '')) : ref.current.click()}>
       <input ref={ref} type="file" style={{display:'none'}}
         accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.jpg,.jpeg,.png,.gif"
         onChange={handleFile}/>
@@ -1150,7 +1157,9 @@ const Stage1 = ({ data, setData }) => (
       <Input value={data.ein} onChange={v=>setData({ein:v})} placeholder="EIN Number"/>
     </Field>
     <Field label="IRS Verification Letter Upload" full>
-      <FileDrop value={data.irsLetter} onChange={v=>setData({irsLetter:v})}/>
+      <FileDrop value={data.irsLetter}
+        onChange={v => setData({irsLetter: v})}
+        onFileData={(base64, mime) => setData({irsLetterBase64: base64, irsLetterMime: mime})}/>
     </Field>
     <div className="tg-fields-divider"/>
     <Field label="First Name">
@@ -1604,7 +1613,7 @@ const VariationC = ({ initialStage = 0, initialData = null }) => {
       const res = await fetch('/api/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data, pdfBase64 }),
+        body: JSON.stringify({ data, pdfBase64, irsLetterBase64: data.irsLetterBase64 || null, irsLetterMime: data.irsLetterMime || null }),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));

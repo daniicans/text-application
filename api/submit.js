@@ -5,7 +5,7 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { data, pdfBase64 } = req.body || {};
+  const { data, pdfBase64, irsLetterBase64, irsLetterMime } = req.body || {};
 
   if (!data) {
     return res.status(400).json({ error: 'Missing form data' });
@@ -139,6 +139,13 @@ module.exports = async function handler(req, res) {
       filename: `TextApplication-${safeName}.pdf`,
       content: Buffer.from(pdfBase64, 'base64'),
       contentType: 'application/pdf',
+    });
+  }
+  if (irsLetterBase64 && irsLetter) {
+    attachments.push({
+      filename: irsLetter,
+      content: Buffer.from(irsLetterBase64, 'base64'),
+      contentType: irsLetterMime || 'application/octet-stream',
     });
   }
 

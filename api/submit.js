@@ -87,7 +87,7 @@ module.exports = async function handler(req, res) {
     </div>
   </div>
   <div class="footer">
-    icans.io &nbsp;·&nbsp; Texting Application &nbsp;·&nbsp; Confidential — for icans staff only
+    icans.ai &nbsp;·&nbsp; Texting Application &nbsp;·&nbsp; Confidential — for icans staff only
     ${pdfBase64 ? '<br>PDF application attached.' : ''}
   </div>
 </div>

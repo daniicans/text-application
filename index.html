@@ -1475,7 +1475,7 @@ function generateApplicationPDF(data) {
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(110, 106, 147);
-  doc.text('icans.io  ·  Texting Application  ·  Confidential — for icans staff only', MARGIN, pageH - 8);
+  doc.text('icans.ai  ·  Texting Application  ·  Confidential — for icans staff only', MARGIN, pageH - 8);
 
   // Return raw base64 (no data-URI prefix)
   return doc.output('datauristring').split(',')[1];

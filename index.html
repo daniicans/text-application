@@ -1751,7 +1751,7 @@ function fit() {
   } else {
     f.style.width = '1280px';
     f.style.height = '820px';
-    const s = Math.min(window.innerWidth / 1280, window.innerHeight / 820, 1);
+    const s = Math.min(window.innerWidth / 1280, window.innerHeight / 820);
     f.style.transform = `scale(${s})`;
   }
 }

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>icans Texting Application</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="texting-styles.css">
+<link rel="stylesheet" href="texting-animations.css">
+<template id="__bundler_thumbnail">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <defs>
+      <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#3FB94C"/>
+        <stop offset="100%" stop-color="#2E9039"/>
+      </linearGradient>
+    </defs>
+    <rect width="100" height="100" rx="18" fill="url(#bg)"/>
+    <g transform="translate(26,30)" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 8 h40 a4 4 0 0 1 4 4 v18 a4 4 0 0 1 -4 4 h-22 l-10 8 v-8 h-8 a4 4 0 0 1 -4 -4 v-18 a4 4 0 0 1 4 -4 z"/>
+      <circle cx="16" cy="21" r="1.6" fill="#fff"/>
+      <circle cx="24" cy="21" r="1.6" fill="#fff"/>
+      <circle cx="32" cy="21" r="1.6" fill="#fff"/>
+    </g>
+  </svg>
+</template>
+<style>
+  body { font-family: 'Inter', sans-serif; background: #F4F3F8; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="texting-data.jsx"></script>
+<script type="text/babel" src="texting-stages.jsx"></script>
+<script type="text/babel" src="texting-animations.jsx"></script>
+<script type="text/babel" src="texting-variations.jsx"></script>
+
+<script type="text/babel">
+const App = () => {
+  const [tweaks, setTweak] = useTweaks(/*EDITMODE-BEGIN*/{
+    "primaryAccent": "#3FB94C",
+    "tigerAccent": "#F47A1F",
+    "inkColor": "#494A7D",
+    "showAllStages": true,
+    "showWelcome": true,
+    "showSuccess": true
+  }/*EDITMODE-END*/);
+
+  React.useEffect(() => {
+    const root = document.documentElement;
+    root.style.setProperty('--brand', tweaks.primaryAccent);
+    // derive deeper shade
+    root.style.setProperty('--tiger', tweaks.tigerAccent);
+    root.style.setProperty('--ink', tweaks.inkColor);
+  }, [tweaks.primaryAccent, tweaks.tigerAccent, tweaks.inkColor]);
+
+  // ---- which stages to render per variation ----
+  const stagesToShow = [];
+  if (tweaks.showWelcome) stagesToShow.push(0);
+  if (tweaks.showAllStages) stagesToShow.push(1, 2);
+  else stagesToShow.push(1, 2);
+  if (tweaks.showSuccess) stagesToShow.push(3);
+
+  const stageLabels = {
+    0: 'Welcome',
+    1: '01 Business & contact',
+    2: '02 Business address',
+    3: 'Submitted',
+  };
+
+  const renderStages = (Component, prefix) =>
+    stagesToShow.map(s => {
+      const preFilled = s === 2 || s === 3;
+      return (
+        <DCArtboard key={s} id={`${prefix}-${s}`} label={stageLabels[s]} width={1280} height={820}>
+          <Component initialStage={s} initialData={preFilled ? sampleData() : null}/>
+        </DCArtboard>
+      );
+    });
+
+  return (
+    <>
+      <DesignCanvas
+        title="icans Texting Application"
+        subtitle="Two no-scroll layouts for the texting (A2P SMS) onboarding form. Side-rail stepper vs. conversational. Every artboard is a fixed 1280×820 canvas with no overflow."
+      >
+        <DCSection id="c" title="Texting Application" subtitle="Conversational center stage with a left-rail stepper that keeps progress visible at all times.">
+          {renderStages(VariationC, 'c')}
+        </DCSection>
+      </DesignCanvas>
+
+      <TweaksPanel title="Tweaks">
+        <TweakSection title="Stages on canvas">
+          <TweakToggle label="Show all 2 stages" value={tweaks.showAllStages} onChange={v => setTweak('showAllStages', v)} />
+          <TweakToggle label="Show welcome screens" value={tweaks.showWelcome} onChange={v => setTweak('showWelcome', v)} />
+          <TweakToggle label="Show submitted / success screens" value={tweaks.showSuccess} onChange={v => setTweak('showSuccess', v)} />
+        </TweakSection>
+        <TweakSection title="Brand colors">
+          <TweakColor label="Primary (success green)" value={tweaks.primaryAccent} options={['#3FB94C', '#2563EB', '#7C3AED', '#0891B2']} onChange={v => setTweak('primaryAccent', v)} />
+          <TweakColor label="Accent (tiger orange)" value={tweaks.tigerAccent} options={['#F47A1F', '#EAB308', '#EC4899', '#10B981']} onChange={v => setTweak('tigerAccent', v)} />
+          <TweakColor label="Ink (headings)" value={tweaks.inkColor} options={['#494A7D', '#1E293B', '#0F172A', '#312E81']} onChange={v => setTweak('inkColor', v)} />
+        </TweakSection>
+        <TweakSection title="Reset">
+          <TweakButton onClick={() => setTweak({primaryAccent: '#3FB94C', tigerAccent: '#F47A1F', inkColor: '#494A7D'})}>
+            Restore default palette
+          </TweakButton>
+        </TweakSection>
+      </TweaksPanel>
+    </>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

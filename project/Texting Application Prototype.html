@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>icans Texting Application — Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="texting-styles.css">
+<link rel="stylesheet" href="texting-animations.css">
+<template id="__bundler_thumbnail">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <defs>
+      <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#3FB94C"/>
+        <stop offset="100%" stop-color="#2E9039"/>
+      </linearGradient>
+    </defs>
+    <rect width="100" height="100" rx="18" fill="url(#bg)"/>
+    <g transform="translate(26,30)" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 8 h40 a4 4 0 0 1 4 4 v18 a4 4 0 0 1 -4 4 h-22 l-10 8 v-8 h-8 a4 4 0 0 1 -4 -4 v-18 a4 4 0 0 1 4 -4 z"/>
+      <circle cx="16" cy="21" r="1.6" fill="#fff"/>
+      <circle cx="24" cy="21" r="1.6" fill="#fff"/>
+      <circle cx="32" cy="21" r="1.6" fill="#fff"/>
+    </g>
+  </svg>
+</template>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #F4F3F8;
+    overflow: hidden;
+  }
+  /* Stage the artboard at exact 1280×820 then scale to viewport */
+  #scale-stage {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: #F4F3F8;
+  }
+  #frame {
+    width: 1280px;
+    height: 820px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.10), 0 6px 20px rgba(0,0,0,0.05);
+    overflow: hidden;
+    transform-origin: center center;
+  }
+  #frame > * { width: 100%; height: 100%; }
+  /* Inside the prototype the stage shouldn't show the dotted "card" outline */
+  #frame .tg-art { width: 100%; height: 100%; }
+</style>
+</head>
+<body>
+<div id="scale-stage">
+  <div id="frame">
+    <div id="root"></div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="texting-data.jsx"></script>
+<script type="text/babel" src="texting-stages.jsx"></script>
+<script type="text/babel" src="texting-animations.jsx"></script>
+<script type="text/babel" src="texting-variations.jsx"></script>
+
+<script type="text/babel" data-presets="env,react">
+const App = () => {
+  const [tweaks, setTweak] = useTweaks(/*EDITMODE-BEGIN*/{
+    "primaryAccent": "#3FB94C",
+    "tigerAccent": "#F47A1F",
+    "inkColor": "#494A7D",
+    "prefill": false
+  }/*EDITMODE-END*/);
+
+  React.useEffect(() => {
+    const r = document.documentElement;
+    r.style.setProperty('--brand', tweaks.primaryAccent);
+    const dim = (hex, amt) => {
+      const h = hex.replace('#',''); const v = parseInt(h, 16);
+      const r2 = Math.max(0, ((v>>16)&255) - amt);
+      const g2 = Math.max(0, ((v>>8)&255) - amt);
+      const b2 = Math.max(0, (v&255) - amt);
+      return '#' + [r2,g2,b2].map(c => c.toString(16).padStart(2,'0')).join('');
+    };
+    r.style.setProperty('--brand-deep', dim(tweaks.primaryAccent, 30));
+    r.style.setProperty('--tiger', tweaks.tigerAccent);
+    r.style.setProperty('--ink', tweaks.inkColor);
+  }, [tweaks.primaryAccent, tweaks.tigerAccent, tweaks.inkColor]);
+
+  // remount when prefill toggles, so initialData re-applies
+  const data = tweaks.prefill ? sampleData() : null;
+
+  return (
+    <>
+      <VariationC key={tweaks.prefill ? 'pre' : 'blank'} initialStage={0} initialData={data}/>
+      <TweaksPanel title="Tweaks">
+        <TweakSection title="Demo">
+          <TweakToggle label="Pre-fill with sample data (OnlyCans)" value={tweaks.prefill} onChange={v => setTweak('prefill', v)} />
+        </TweakSection>
+        <TweakSection title="Brand colors">
+          <TweakColor label="Primary (success green)" value={tweaks.primaryAccent} options={['#3FB94C','#2563EB','#7C3AED','#0891B2']} onChange={v => setTweak('primaryAccent', v)} />
+          <TweakColor label="Accent (tiger orange)"   value={tweaks.tigerAccent}   options={['#F47A1F','#EAB308','#EC4899','#10B981']} onChange={v => setTweak('tigerAccent', v)} />
+          <TweakColor label="Ink (deep navy)"          value={tweaks.inkColor}      options={['#494A7D','#1F2937','#111827','#0F172A']} onChange={v => setTweak('inkColor', v)} />
+        </TweakSection>
+      </TweaksPanel>
+    </>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+
+// Letterbox-scale the 1280×820 stage to whatever viewport we land in
+function fit() {
+  const s = Math.min(window.innerWidth / 1280, window.innerHeight / 820, 1);
+  const f = document.getElementById('frame');
+  if (f) f.style.transform = `scale(${s})`;
+}
+window.addEventListener('resize', fit);
+fit();
+</script>
+</body>
+</html>

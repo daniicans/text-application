@@ -1,0 +1,323 @@
+/* ===========================================================
+   ANIMATIONS — phone conversation mock + aurora drift
+   Used on Welcome screens for variations B and C.
+=========================================================== */
+
+/* ---------- Aurora drift on background blobs ---------- */
+@keyframes aurora-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%      { transform: translate(60px, -30px) scale(1.1); }
+  66%      { transform: translate(-40px, 50px) scale(0.95); }
+}
+@keyframes aurora-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%      { transform: translate(-50px, 40px) scale(0.9); }
+  66%      { transform: translate(70px, -20px) scale(1.15); }
+}
+@keyframes aurora-3 {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: .6; }
+  50%      { transform: translate(40px, -40px) scale(1.2); opacity: .9; }
+}
+
+/* B welcome — replace SVG bg with three live radials */
+.vb-welcome-aurora {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.vb-welcome-aurora .blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  will-change: transform;
+}
+.vb-welcome-aurora .blob-1 {
+  top: -10%; left: -5%;
+  width: 520px; height: 520px;
+  background: radial-gradient(circle, rgba(63,185,76,0.55), transparent 65%);
+  animation: aurora-1 18s ease-in-out infinite;
+}
+.vb-welcome-aurora .blob-2 {
+  bottom: -15%; right: -10%;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(73,74,125,0.32), transparent 65%);
+  animation: aurora-2 22s ease-in-out infinite;
+}
+.vb-welcome-aurora .blob-3 {
+  top: 30%; right: 25%;
+  width: 360px; height: 360px;
+  background: radial-gradient(circle, rgba(244,122,31,0.25), transparent 65%);
+  animation: aurora-3 16s ease-in-out infinite;
+}
+
+/* C welcome — bigger, slower aurora behind the centered card */
+.vc-welcome-aurora {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+.vc-welcome-aurora .blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  will-change: transform;
+}
+.vc-welcome-aurora .blob-1 {
+  top: 5%; left: 8%;
+  width: 480px; height: 480px;
+  background: radial-gradient(circle, rgba(63,185,76,0.45), transparent 65%);
+  animation: aurora-1 20s ease-in-out infinite;
+}
+.vc-welcome-aurora .blob-2 {
+  bottom: 5%; right: 10%;
+  width: 540px; height: 540px;
+  background: radial-gradient(circle, rgba(73,74,125,0.30), transparent 65%);
+  animation: aurora-2 24s ease-in-out infinite;
+}
+.vc-welcome-aurora .blob-3 {
+  top: 50%; left: 60%;
+  width: 320px; height: 320px;
+  background: radial-gradient(circle, rgba(244,122,31,0.22), transparent 65%);
+  animation: aurora-3 17s ease-in-out infinite;
+}
+
+/* ---------- Phone conversation mock ---------- */
+.phone-mock {
+  width: 280px;
+  height: 540px;
+  background: linear-gradient(170deg, #1A1830 0%, #2C2A4D 100%);
+  border-radius: 36px;
+  padding: 8px;
+  box-shadow:
+    0 30px 60px -20px rgba(73, 74, 125, 0.45),
+    0 0 0 1px rgba(255,255,255,0.06) inset,
+    0 2px 0 rgba(255,255,255,0.10) inset;
+  position: relative;
+}
+.phone-mock::before {
+  /* Side button */
+  content: '';
+  position: absolute;
+  right: -2px; top: 110px;
+  width: 3px; height: 56px;
+  background: #1A1830;
+  border-radius: 2px;
+}
+.phone-screen {
+  width: 100%; height: 100%;
+  background: linear-gradient(180deg, #FBFAF9 0%, #F4F3F8 100%);
+  border-radius: 28px;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  position: relative;
+}
+.phone-notch {
+  position: absolute;
+  top: 8px; left: 50%;
+  transform: translateX(-50%);
+  width: 86px; height: 22px;
+  background: #1A1830;
+  border-radius: 999px;
+  z-index: 5;
+}
+.phone-status {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 22px 8px;
+  font-size: 11px; font-weight: 700;
+  color: #1A1830;
+  font-family: 'Inter', sans-serif;
+}
+.phone-status .icons {
+  display: inline-flex; gap: 4px; align-items: center;
+}
+.phone-status .icons svg { display: block; }
+.phone-conv-header {
+  flex-shrink: 0;
+  display: flex; flex-direction: column;
+  align-items: center;
+  padding: 8px 16px 12px;
+  border-bottom: 0.5px solid rgba(73,74,125,0.12);
+  gap: 4px;
+}
+.phone-avatar {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid #E5E7EB;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 800;
+  letter-spacing: -0.04em;
+  margin-bottom: 2px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+}
+.phone-avatar .oc-o { color: #15171C; }
+.phone-avatar .oc-c { color: #1FA8E8; }
+.phone-time-divider {
+  align-self: center;
+  font-size: 10.5px; font-weight: 600;
+  color: #8A8A92;
+  letter-spacing: 0.02em;
+  margin: 8px 0 4px;
+  animation: phone-bubble-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+.phone-conv-name {
+  font-size: 13px; font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.phone-conv-sub {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+.phone-msgs {
+  flex: 1;
+  display: flex; flex-direction: column;
+  gap: 4px;
+  padding: 14px 14px 10px;
+  overflow: hidden;
+}
+.phone-bubble {
+  max-width: 78%;
+  padding: 8px 12px;
+  border-radius: 18px;
+  font-size: 12.5px; line-height: 1.4;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+  animation: phone-bubble-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+  word-wrap: break-word;
+}
+.phone-bubble.from-them {
+  background: #E8E7EE;
+  color: #1A1830;
+  align-self: flex-start;
+  border-bottom-left-radius: 5px;
+}
+.phone-bubble.from-us {
+  background: var(--brand);
+  color: white;
+  align-self: flex-end;
+  border-bottom-right-radius: 5px;
+  box-shadow: 0 2px 8px -2px rgba(63,185,76,0.45);
+}
+.phone-bubble.is-typing {
+  background: var(--brand);
+  align-self: flex-end;
+  border-bottom-right-radius: 5px;
+  border-bottom-left-radius: 18px;
+  padding: 10px 14px;
+  display: inline-flex;
+  gap: 4px;
+  box-shadow: 0 2px 8px -2px rgba(63,185,76,0.45);
+}
+.phone-bubble.is-typing span {
+  background: rgba(255,255,255,0.85) !important;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #8E8AA8;
+  animation: typing-bounce 1.2s infinite;
+}
+.phone-bubble.is-typing span:nth-child(2) { animation-delay: 0.15s; }
+.phone-bubble.is-typing span:nth-child(3) { animation-delay: 0.30s; }
+
+@keyframes phone-bubble-in {
+  0%   { opacity: 0; transform: translateY(6px) scale(0.92); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes typing-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+  30%           { transform: translateY(-4px); opacity: 1; }
+}
+
+.phone-input {
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 10px 12px;
+  border-top: 0.5px solid rgba(73,74,125,0.10);
+}
+.phone-input-field {
+  flex: 1;
+  height: 28px;
+  background: rgba(73,74,125,0.06);
+  border-radius: 999px;
+  padding: 0 12px;
+  display: flex; align-items: center;
+  font-size: 11px;
+  color: rgba(73,74,125,0.45);
+}
+.phone-input-send {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: white;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* Phone container — frames placement in B and C welcomes */
+.phone-frame-b {
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.phone-frame-b::before {
+  content: 'Live preview';
+  position: absolute;
+  top: 0; right: 30px;
+  font-size: 10px; font-weight: 700;
+  color: var(--brand-deep);
+  background: var(--brand-50);
+  padding: 4px 10px;
+  border-radius: 999px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  z-index: 2;
+}
+.phone-frame-b .phone-mock {
+  transform: rotate(2deg);
+}
+
+/* C — phone sits to the right of headline copy in a 2-col card */
+.vc-welcome-card-twocol {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 36px;
+  align-items: center;
+  text-align: left;
+}
+.vc-welcome-card-twocol .vc-welcome-logo { margin: 0 0 14px; }
+.vc-welcome-card-twocol .vc-welcome-vchips { grid-template-columns: repeat(2, 1fr); }
+.vc-welcome-card-twocol .vc-welcome-cta-row { justify-content: flex-start; }
+.vc-welcome-card-twocol .vc-welcome-time { display: inline-flex; }
+.vc-welcome-card-twocol .vc-welcome-sub { margin-left: 0; }
+
+.phone-frame-c {
+  position: relative;
+}
+.phone-frame-c .phone-mock {
+  transform: rotate(3deg);
+}
+.phone-frame-c::after {
+  /* Decorative bubble outside the phone */
+  content: '🎉 Approved';
+  position: absolute;
+  bottom: 30px; right: -30px;
+  background: white;
+  border: 1px solid var(--brand-100);
+  color: var(--brand-deep);
+  font-size: 11px; font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+  animation: phone-bubble-in 0.4s 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+
+/* ---------- Staggered entrance — used on welcome screens ---------- */
+@keyframes welcome-rise {
+  0%   { opacity: 0; transform: translateY(14px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.welcome-rise { animation: welcome-rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+.welcome-rise.d1 { animation-delay: 0.05s; }
+.welcome-rise.d2 { animation-delay: 0.15s; }
+.welcome-rise.d3 { animation-delay: 0.25s; }
+.welcome-rise.d4 { animation-delay: 0.35s; }
+.welcome-rise.d5 { animation-delay: 0.45s; }
+.welcome-rise.d6 { animation-delay: 0.55s; }

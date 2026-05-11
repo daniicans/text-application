@@ -824,6 +824,110 @@ a { color: inherit; text-decoration: none; }
 .welcome-rise.d3 { animation-delay: 0.25s; }
 .welcome-rise.d4 { animation-delay: 0.35s; }
 .welcome-rise.d5 { animation-delay: 0.45s; }
+
+/* ============================================================
+   MOBILE — fluid layout, no scale transform
+============================================================ */
+@media (max-width: 768px) {
+  body { overflow-y: auto; overflow-x: hidden; }
+
+  #scale-stage {
+    align-items: flex-start;
+    height: auto;
+    min-height: 100svh;
+    position: relative;
+  }
+
+  #frame {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100svh;
+    transform: none !important;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .tg-art {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100svh;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  /* Header */
+  .tg-hdr { padding: 10px 16px; }
+  .tg-hdr-help span { display: none; }
+
+  /* Sidebar hidden — replaced by top progress in side rail */
+  .vb-side { display: none; }
+  .vb-main { grid-template-columns: 1fr; }
+
+  /* Stage area */
+  .vc-main { overflow-y: auto; }
+  .vc-stage {
+    padding: 20px 16px 24px;
+    align-items: stretch;
+    justify-content: flex-start;
+    min-height: auto;
+  }
+
+  /* Form card */
+  .vc-card {
+    border-radius: 18px;
+    padding: 24px 20px;
+    max-width: 100%;
+    max-height: none;
+    box-shadow: 0 4px 24px rgba(73,74,125,0.12);
+  }
+
+  .vc-q-title { font-size: 22px; margin-bottom: 8px; }
+  .vc-q-sub { font-size: 14px; margin-bottom: 16px; }
+  .vc-q-input { overflow-y: visible; }
+
+  /* Footer nav: stack on mobile */
+  .vc-q-foot {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .vc-q-foot .tg-btn { flex: 1; justify-content: center; min-width: 120px; }
+
+  /* Fields — single column */
+  .tg-fields { grid-template-columns: 1fr; }
+  .tg-field-full { grid-column: 1; }
+
+  /* Plan cards — single column */
+  .tg-plan-grid { grid-template-columns: 1fr; }
+
+  /* Welcome screen */
+  .vc-welcome { padding: 20px 16px 24px; justify-content: flex-start; }
+  .vc-welcome-card {
+    border-radius: 20px;
+    padding: 28px 20px;
+    max-width: 100%;
+  }
+  .vc-welcome-card-twocol { grid-template-columns: 1fr; gap: 20px; }
+  .vc-welcome-card-twocol .vc-welcome-vchips { grid-template-columns: repeat(2, 1fr); }
+  .vc-welcome-card-twocol .vc-welcome-cta-row { justify-content: stretch; }
+
+  .vc-welcome-title { font-size: 26px; }
+  .vc-welcome-sub { font-size: 14px; }
+  .vc-welcome-vchips { grid-template-columns: repeat(2, 1fr); }
+  .vc-welcome-cta-row { flex-direction: column; gap: 10px; }
+  .vc-welcome-cta-row .tg-btn { width: 100%; justify-content: center; }
+
+  /* Phone mock — decorative, hide on mobile */
+  .phone-mock, .phone-frame-a, .phone-frame-b, .phone-frame-c { display: none; }
+
+  /* Aurora blobs — scale down */
+  .vc-welcome-aurora .blob-1 { width: 240px; height: 240px; }
+  .vc-welcome-aurora .blob-2 { width: 260px; height: 260px; }
+  .vc-welcome-aurora .blob-3 { width: 160px; height: 160px; }
+
+  /* Success screen */
+  .tg-success { padding: 24px 16px; justify-content: flex-start; padding-top: 40px; }
+  .tg-success-next { grid-template-columns: 1fr; max-width: 100%; }
+}
 </style>
 </head>
 <body>
@@ -1532,11 +1636,20 @@ const App = () => {
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 
-// Letterbox-scale the 1280×820 stage to whatever viewport we land in
+// Letterbox-scale on desktop; fluid layout on mobile
 function fit() {
-  const s = Math.min(window.innerWidth / 1280, window.innerHeight / 820, 1);
   const f = document.getElementById('frame');
-  if (f) f.style.transform = `scale(${s})`;
+  if (!f) return;
+  if (window.innerWidth <= 768) {
+    f.style.transform = '';
+    f.style.width = '';
+    f.style.height = '';
+  } else {
+    f.style.width = '1280px';
+    f.style.height = '820px';
+    const s = Math.min(window.innerWidth / 1280, window.innerHeight / 820, 1);
+    f.style.transform = `scale(${s})`;
+  }
 }
 window.addEventListener('resize', fit);
 fit();

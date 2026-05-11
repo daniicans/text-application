@@ -12,16 +12,15 @@ html, body { margin: 0; padding: 0; height: 100%; }
 body { font-family: 'Inter', sans-serif; background: #F4F3F8; overflow: hidden; }
 #scale-stage {
   position: fixed; inset: 0;
-  display: flex; align-items: center; justify-content: center;
+  display: flex; align-items: stretch; justify-content: center;
   background: #F4F3F8;
 }
 #frame {
-  width: 1280px; height: 820px;
+  width: 100%; height: 100%;
   background: white;
-  border-radius: 16px;
-  box-shadow: 0 30px 80px rgba(0,0,0,0.10), 0 6px 20px rgba(0,0,0,0.05);
+  border-radius: 0;
+  box-shadow: none;
   overflow: hidden;
-  transform-origin: center center;
 }
 #frame > * { width: 100%; height: 100%; }
 #frame .tg-art { width: 100%; height: 100%; }
@@ -59,7 +58,7 @@ a { color: inherit; text-decoration: none; }
 
 /* ARTBOARD */
 .tg-art {
-  width: 1280px; height: 820px;
+  width: 100%; height: 100%;
   background: var(--bg);
   display: flex; flex-direction: column;
   overflow: hidden;
@@ -855,29 +854,9 @@ a { color: inherit; text-decoration: none; }
 @media (max-width: 768px) {
   body { overflow-y: auto; overflow-x: hidden; }
 
-  #scale-stage {
-    align-items: flex-start;
-    height: auto;
-    min-height: 100svh;
-    position: relative;
-  }
-
-  #frame {
-    width: 100% !important;
-    height: auto !important;
-    min-height: 100svh;
-    transform: none !important;
-    border-radius: 0;
-    box-shadow: none;
-  }
-
-  .tg-art {
-    width: 100% !important;
-    height: auto !important;
-    min-height: 100svh;
-    overflow-y: auto;
-    overflow-x: hidden;
-  }
+  #scale-stage { align-items: flex-start; height: auto; min-height: 100svh; position: relative; }
+  #frame { height: auto !important; min-height: 100svh; }
+  .tg-art { height: auto !important; min-height: 100svh; overflow-y: auto; overflow-x: hidden; }
 
   /* Header */
   .tg-hdr { padding: 10px 16px; }
@@ -1740,23 +1719,8 @@ const App = () => {
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 
-// Letterbox-scale on desktop; fluid layout on mobile
-function fit() {
-  const f = document.getElementById('frame');
-  if (!f) return;
-  if (window.innerWidth <= 768) {
-    f.style.transform = '';
-    f.style.width = '';
-    f.style.height = '';
-  } else {
-    f.style.width = '1280px';
-    f.style.height = '820px';
-    const s = Math.min(window.innerWidth / 1280, window.innerHeight / 820);
-    f.style.transform = `scale(${s})`;
-  }
-}
-window.addEventListener('resize', fit);
-fit();
+// Layout is fully fluid — no scaling needed
+
 
 </script>
 </body>

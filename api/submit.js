@@ -159,5 +159,18 @@ module.exports = async function handler(req, res) {
     attachments,
   });
 
+  try {
+    await fetch('https://icore.icans.ai/api/webhooks/texting-application', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-webhook-secret': process.env.ICORE_WEBHOOK_SECRET,
+      },
+      body: JSON.stringify({ data, pdfBase64, irsLetterBase64, irsLetterMime }),
+    });
+  } catch (e) {
+    console.error('iCore webhook failed:', e.message);
+  }
+
   return res.status(200).json({ success: true });
 };

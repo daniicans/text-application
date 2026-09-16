@@ -12,6 +12,7 @@
     --ink: #1A1830;
     --purple: #494A7D;
     --purple-soft: #5E5F94;
+    --purple-tint: #EEEEF6;
     --green: #2E9039;
     --green-bright: #3FB94C;
     --green-tint: #ECFAEE;
@@ -31,23 +32,19 @@
     color: var(--ink);
     min-height: 100vh;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
-    padding: 24px 16px;
+    padding: 32px 16px;
   }
   .card {
     width: 100%;
-    max-width: 520px;
+    max-width: 560px;
     background: #fff;
     border-radius: 20px;
     box-shadow: 0 4px 24px rgba(73,74,125,0.12);
     overflow: hidden;
   }
-  .header {
-    background: var(--purple);
-    color: #fff;
-    padding: 32px 36px 28px;
-  }
+  .header { background: var(--purple); color: #fff; padding: 32px 36px 28px; }
   .header .badge {
     display: inline-block;
     background: rgba(255,255,255,0.14);
@@ -64,165 +61,310 @@
   .header p { font-size: 14px; opacity: 0.8; line-height: 1.5; }
   .body { padding: 28px 36px 36px; }
 
-  /* Signup counter */
-  .counter {
-    display: flex; align-items: center; gap: 10px;
-    background: var(--green-tint); border: 1px solid var(--green-line);
-    border-radius: 12px; padding: 12px 16px; margin-bottom: 26px;
-  }
-  .counter .dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: var(--green-bright); flex-shrink: 0;
-    animation: pulse 2s ease-in-out infinite;
-  }
-  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
-  .counter span { font-size: 13px; font-weight: 600; color: var(--green); }
-  .counter span b { font-weight: 800; }
-  .counter.loading span { color: var(--muted); font-weight: 500; }
-  .counter.loading .dot { background: var(--faint); }
+  /* Seat meter */
+  .meter { margin-bottom: 26px; }
+  .meter-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .meter-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--green); }
+  .meter-count { font-size: 13px; font-weight: 700; }
+  .meter-count.loading { color: var(--faint); font-weight: 500; }
+  .bar { height: 10px; border-radius: 999px; background: var(--line); overflow: hidden; }
+  .bar .fill { height: 100%; width: 0%; border-radius: 999px; background: var(--green-bright); transition: width 0.5s ease; }
 
-  /* Form */
-  .field { margin-bottom: 18px; }
-  label {
-    display: block; font-size: 12px; font-weight: 600;
-    color: var(--muted); margin-bottom: 6px;
+  .section-title {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--green);
+    margin: 26px 0 14px; padding-bottom: 8px; border-bottom: 2px solid var(--green-tint);
   }
-  label .opt { font-weight: 400; color: var(--faint); }
-  input {
+  .section-title:first-of-type { margin-top: 0; }
+
+  .field { margin-bottom: 18px; }
+  label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+  input, select {
     width: 100%; font-family: inherit; font-size: 15px; color: var(--ink);
     padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 10px;
     background: #FBFAF9; outline: none; transition: border-color 0.15s ease;
+    appearance: none; -webkit-appearance: none;
   }
-  input:focus { border-color: var(--purple); background: #fff; }
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236E6A93' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 14px center;
+  }
+  input:focus, select:focus { border-color: var(--purple); background: #fff; }
   .hint { font-size: 12px; color: var(--faint); margin-top: 6px; line-height: 1.5; }
   .hint a { color: var(--purple-soft); }
+
+  .notice {
+    background: var(--purple-tint); border: 1px solid var(--line);
+    border-radius: 10px; padding: 12px 14px; font-size: 13px;
+    color: var(--purple); line-height: 1.6; margin-bottom: 18px;
+  }
+  .notice b { font-weight: 700; }
+  .steps {
+    background: #FBFAF9; border: 1px solid var(--line); border-radius: 10px;
+    padding: 14px 16px 14px 32px; font-size: 13px; color: var(--muted);
+    line-height: 1.7; margin-bottom: 18px;
+  }
+  .steps li { margin-bottom: 4px; }
+  .steps a { color: var(--purple-soft); font-weight: 600; }
+
+  .check { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 18px; cursor: pointer; }
+  .check input { width: 18px; height: 18px; margin-top: 1px; flex-shrink: 0; accent-color: var(--purple); appearance: auto; -webkit-appearance: auto; }
+  .check span { font-size: 13px; color: var(--ink); line-height: 1.5; font-weight: 500; }
+
+  .conditional { display: none; }
+  .conditional.show { display: block; }
+
   button.submit {
     width: 100%; font-family: inherit; font-size: 15px; font-weight: 700;
     color: #fff; background: var(--purple); border: none; border-radius: 12px;
-    padding: 15px; cursor: pointer; margin-top: 6px;
+    padding: 15px; cursor: pointer; margin-top: 8px;
     transition: background 0.15s ease, opacity 0.15s ease;
   }
   button.submit:hover { background: var(--purple-soft); }
   button.submit:disabled { opacity: 0.55; cursor: default; }
 
-  .msg {
-    display: none; margin-bottom: 18px; padding: 12px 14px;
-    border-radius: 10px; font-size: 13px; font-weight: 500; line-height: 1.5;
-  }
+  .msg { display: none; margin-bottom: 18px; padding: 12px 14px; border-radius: 10px; font-size: 13px; font-weight: 500; line-height: 1.5; }
   .msg.error { display: block; background: var(--red-tint); border: 1px solid var(--red-line); color: var(--red); }
 
-  /* Success state */
   .state { display: none; text-align: center; padding: 8px 0 4px; }
   .state .icon {
     width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 16px;
     display: flex; align-items: center; justify-content: center; font-size: 26px;
-    background: var(--green-tint); border: 1px solid var(--green-line);
   }
+  .state.success .icon { background: var(--green-tint); border: 1px solid var(--green-line); }
+  .state.full .icon { background: var(--bg); border: 1px solid var(--line); }
   .state h2 { font-size: 20px; font-weight: 800; letter-spacing: -0.01em; margin-bottom: 8px; }
   .state p { font-size: 14px; color: var(--muted); line-height: 1.6; }
   .state .seatnum { color: var(--green); font-weight: 700; }
 
-  .footer {
-    background: var(--bg); border-top: 1px solid var(--line);
-    padding: 14px 36px; font-size: 11px; color: var(--muted); text-align: center;
-  }
+  .footer { background: var(--bg); border-top: 1px solid var(--line); padding: 14px 36px; font-size: 11px; color: var(--muted); text-align: center; }
 </style>
 </head>
 <body>
   <div class="card">
     <div class="header">
-      <div class="badge">Private Beta</div>
+      <div class="badge">Private Beta · Plus Plan Only</div>
       <h1>iChat Beta Signup</h1>
-      <p>Send and receive texts from your Mac with iCANS. Sign up and we'll get you set up with beta access.</p>
+      <p>Send and receive emails and two-way SMS from one place with iCANS iChat. 20 beta seats, exclusively for Plus plan subscribers.</p>
     </div>
     <div class="body">
-      <div class="counter loading" id="counter">
-        <div class="dot"></div>
-        <span id="counterText">Loading signups…</span>
+      <div class="meter">
+        <div class="meter-top">
+          <span class="meter-label">Beta Seats</span>
+          <span class="meter-count loading" id="meterCount">Loading…</span>
+        </div>
+        <div class="bar"><div class="fill" id="meterFill"></div></div>
       </div>
 
       <div class="msg error" id="errorMsg"></div>
 
       <form id="signupForm" novalidate>
+        <p class="section-title">Your Account</p>
+        <label class="check">
+          <input type="checkbox" id="planConfirmed">
+          <span>I'm an iCANS <b>Plus plan</b> subscriber. <span style="color:var(--muted);font-weight:400;">(The beta is Plus-only — we'll verify against your account before onboarding.)</span></span>
+        </label>
         <div class="field">
           <label for="fullName">Full Name</label>
-          <input type="text" id="fullName" name="fullName" autocomplete="name" required>
+          <input type="text" id="fullName" autocomplete="name" required>
         </div>
         <div class="field">
-          <label for="email">Email</label>
-          <input type="email" id="email" name="email" autocomplete="email" required>
+          <label for="companyName">Company Name</label>
+          <input type="text" id="companyName" autocomplete="organization" required>
         </div>
         <div class="field">
-          <label for="phone">Phone <span class="opt">(optional)</span></label>
-          <input type="tel" id="phone" name="phone" autocomplete="tel">
+          <label for="email">Account Email</label>
+          <input type="email" id="email" autocomplete="email" required>
+          <p class="hint">The email on your iCANS account — we use this to verify your Plus plan.</p>
         </div>
         <div class="field">
-          <label for="appPassword">App-Specific Password</label>
-          <input type="password" id="appPassword" name="appPassword" autocomplete="off" required>
-          <p class="hint">Generate an app-specific password for your Apple&nbsp;ID at <a href="https://account.apple.com" target="_blank" rel="noopener">account.apple.com</a> → Sign-In and Security → App-Specific Passwords. It's encrypted before it's stored and only used to connect your messages.</p>
+          <label for="phone">Phone</label>
+          <input type="tel" id="phone" autocomplete="tel" required>
+          <p class="hint">iChat includes two-way SMS, so we need a working number.</p>
         </div>
-        <button type="submit" class="submit" id="submitBtn">Sign Me Up</button>
+
+        <p class="section-title">Your Email Setup</p>
+        <div class="field">
+          <label for="mainEmail">Email iChat Should Send &amp; Receive From</label>
+          <input type="email" id="mainEmail" required>
+          <p class="hint">Only one email can be connected per account.</p>
+        </div>
+        <div class="field">
+          <label for="emailPlatform">Email Platform</label>
+          <select id="emailPlatform" required>
+            <option value="">Select your platform…</option>
+            <option value="gmail">Gmail</option>
+            <option value="yahoo">Yahoo Mail</option>
+            <option value="outlook">Outlook / Hotmail</option>
+            <option value="icloud">iCloud Mail</option>
+            <option value="custom-domain">Custom domain email (e.g. you@yourcompany.com)</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
+        <!-- Custom domain path -->
+        <div class="conditional" id="customDomainSection">
+          <div class="notice" id="subdomainNotice">
+            We'll create a subdomain — <b id="subdomainPreview">ichat.yourdomain.com</b> — for your iChat emails. Your existing email keeps working exactly as it does today.
+          </div>
+          <div class="field">
+            <label for="domain">Your Domain</label>
+            <input type="text" id="domain" placeholder="yourcompany.com" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="domainProvider">Where Is Your Domain Managed?</label>
+            <input type="text" id="domainProvider" placeholder="e.g. GoDaddy, Namecheap, Cloudflare, Squarespace" autocomplete="off">
+          </div>
+          <label class="check">
+            <input type="checkbox" id="delegationOk">
+            <span>I agree to delegate access to my domain platform so iCANS can set up the <b>ichat</b> subdomain. We'll contact you with the delegation steps for your provider.</span>
+          </label>
+        </div>
+
+        <!-- App password path -->
+        <div class="conditional" id="appPasswordSection">
+          <div class="steps" id="pwInstructions"></div>
+          <div class="field">
+            <label for="appPassword">App Password</label>
+            <input type="password" id="appPassword" autocomplete="off">
+            <p class="hint">Encrypted before it's stored, and only used to connect your inbox to iChat.</p>
+          </div>
+        </div>
+
+        <button type="submit" class="submit" id="submitBtn">Reserve My Beta Seat</button>
       </form>
 
-      <div class="state" id="successState">
+      <div class="state success" id="successState">
         <div class="icon">🎉</div>
         <h2>You're in!</h2>
-        <p>You're signup <span class="seatnum" id="seatNumber"></span>.<br>We'll email you when your iChat beta access is ready.</p>
+        <p>Seat <span class="seatnum" id="seatNumber"></span> of 20 is yours.<br><span id="successNext"></span></p>
+      </div>
+
+      <div class="state full" id="fullState">
+        <div class="icon">🔒</div>
+        <h2>The beta is full</h2>
+        <p>All 20 seats are taken. Email <a href="mailto:onboarding@icans.ai">onboarding@icans.ai</a> to join the waitlist for the next round.</p>
       </div>
     </div>
     <div class="footer">iCANS · iChat Beta · text.icans.ai/ichat</div>
   </div>
 
 <script>
-  const counter = document.getElementById('counter');
-  const counterText = document.getElementById('counterText');
-  const form = document.getElementById('signupForm');
-  const submitBtn = document.getElementById('submitBtn');
-  const errorMsg = document.getElementById('errorMsg');
-  const successState = document.getElementById('successState');
+  const CAP = 20;
+  const $ = (id) => document.getElementById(id);
+  const form = $('signupForm');
+  const submitBtn = $('submitBtn');
+  const errorMsg = $('errorMsg');
 
-  function renderCount(confirmed) {
-    counter.classList.remove('loading');
-    counterText.innerHTML = confirmed === 1
-      ? '<b>1</b> person has signed up'
-      : '<b>' + confirmed + '</b> people have signed up';
+  const PW_INSTRUCTIONS = {
+    gmail: '<b>Get your Gmail app password:</b><ol><li>Go to <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener">myaccount.google.com/apppasswords</a> (sign in if asked).</li><li>2-Step Verification must be on — enable it under Security if it isn’t.</li><li>Enter a name like <b>iChat</b> and click <b>Create</b>.</li><li>Copy the 16-character password and paste it below.</li></ol>',
+    yahoo: '<b>Get your Yahoo app password:</b><ol><li>Go to <a href="https://login.yahoo.com/myaccount/security/" target="_blank" rel="noopener">Yahoo Account Security</a>.</li><li>Select <b>Generate app password</b> (or "Manage app passwords").</li><li>Choose <b>Other app</b>, name it <b>iChat</b>, and click Generate.</li><li>Copy the password and paste it below.</li></ol>',
+    outlook: '<b>Get your Outlook/Hotmail app password:</b><ol><li>Go to <a href="https://account.live.com/proofs/manage/additional" target="_blank" rel="noopener">Microsoft Additional Security Options</a>.</li><li>Two-step verification must be on — enable it there if it isn’t.</li><li>Under <b>App passwords</b>, select <b>Create a new app password</b>.</li><li>Copy the password and paste it below.</li></ol>',
+    icloud: '<b>Get your iCloud app-specific password:</b><ol><li>Go to <a href="https://account.apple.com" target="_blank" rel="noopener">account.apple.com</a> and sign in.</li><li>Open <b>Sign-In and Security</b> → <b>App-Specific Passwords</b>.</li><li>Click <b>+</b>, name it <b>iChat</b>, and generate.</li><li>Copy the password and paste it below.</li></ol>',
+    other: '<b>Get an app password from your email provider:</b><ol><li>Sign in to your email provider’s account security settings.</li><li>Look for <b>App passwords</b> or <b>App-specific passwords</b> (you may need two-step verification on).</li><li>Generate one named <b>iChat</b> and paste it below.</li></ol>',
+  };
+
+  // --- Seat meter ---
+  function renderMeter(confirmed) {
+    $('meterFill').style.width = (confirmed / CAP * 100) + '%';
+    const mc = $('meterCount');
+    mc.classList.remove('loading');
+    mc.textContent = confirmed + ' of ' + CAP + ' taken';
   }
-
-  function showError(text) {
-    errorMsg.textContent = text;
-    errorMsg.style.display = 'block';
+  function showFull() {
+    form.style.display = 'none';
+    errorMsg.style.display = 'none';
+    $('successState').style.display = 'none';
+    $('fullState').style.display = 'block';
   }
-
   async function loadSeats() {
     try {
       const r = await fetch('/api/ichat-seats');
       if (!r.ok) throw new Error('bad status');
       const j = await r.json();
-      renderCount(j.confirmed);
+      renderMeter(j.confirmed);
+      if (!j.open) showFull();
     } catch (e) {
-      counter.classList.remove('loading');
-      counterText.textContent = 'Couldn’t load signup count';
+      const mc = $('meterCount');
+      mc.classList.remove('loading');
+      mc.textContent = 'Couldn’t load seats';
     }
   }
   loadSeats();
+
+  // --- Conditional sections ---
+  $('emailPlatform').addEventListener('change', () => {
+    const v = $('emailPlatform').value;
+    const custom = v === 'custom-domain';
+    $('customDomainSection').classList.toggle('show', custom);
+    $('appPasswordSection').classList.toggle('show', !!v && !custom);
+    if (v && !custom) $('pwInstructions').innerHTML = PW_INSTRUCTIONS[v] || PW_INSTRUCTIONS.other;
+  });
+
+  function cleanDomain(raw) {
+    return raw.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/.*$/, '');
+  }
+  $('domain').addEventListener('input', () => {
+    const d = cleanDomain($('domain').value);
+    $('subdomainPreview').textContent = 'ichat.' + (d || 'yourdomain.com');
+  });
+
+  // Prefill domain from the sending email when it's a custom-domain setup
+  $('mainEmail').addEventListener('change', () => {
+    if ($('emailPlatform').value === 'custom-domain' && !$('domain').value) {
+      const at = $('mainEmail').value.indexOf('@');
+      if (at > 0) {
+        $('domain').value = cleanDomain($('mainEmail').value.slice(at + 1));
+        $('domain').dispatchEvent(new Event('input'));
+      }
+    }
+  });
+
+  function showError(text) {
+    errorMsg.textContent = text;
+    errorMsg.style.display = 'block';
+    errorMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     errorMsg.style.display = 'none';
 
+    const platform = $('emailPlatform').value;
+    const custom = platform === 'custom-domain';
     const payload = {
-      fullName: document.getElementById('fullName').value.trim(),
-      email: document.getElementById('email').value.trim(),
-      phone: document.getElementById('phone').value.trim(),
-      appPassword: document.getElementById('appPassword').value,
+      planConfirmed: $('planConfirmed').checked,
+      fullName: $('fullName').value.trim(),
+      companyName: $('companyName').value.trim(),
+      email: $('email').value.trim(),
+      phone: $('phone').value.trim(),
+      mainEmail: $('mainEmail').value.trim(),
+      emailPlatform: platform,
+      domain: custom ? cleanDomain($('domain').value) : '',
+      domainProvider: custom ? $('domainProvider').value.trim() : '',
+      delegationOk: custom ? $('delegationOk').checked : false,
+      appPassword: custom ? '' : $('appPassword').value,
     };
 
+    if (!payload.planConfirmed) return showError('The iChat beta is only available to Plus plan subscribers — please confirm your plan.');
     if (payload.fullName.length < 2) return showError('Please enter your full name.');
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(payload.email)) return showError('Please enter a valid email address.');
-    if (payload.appPassword.length < 8) return showError('Please enter your app-specific password (at least 8 characters).');
+    if (payload.companyName.length < 2) return showError('Please enter your company name.');
+    if (!EMAIL_RE.test(payload.email)) return showError('Please enter a valid account email address.');
+    if (payload.phone.replace(/\D/g, '').length < 7) return showError('Please enter a valid phone number.');
+    if (!EMAIL_RE.test(payload.mainEmail)) return showError('Please enter the email iChat should send and receive from.');
+    if (!platform) return showError('Please select your email platform.');
+    if (custom) {
+      if (!payload.domain || !payload.domain.includes('.')) return showError('Please enter your custom domain (e.g. yourcompany.com).');
+      if (payload.domainProvider.length < 2) return showError('Please tell us where your domain is managed (e.g. GoDaddy, Cloudflare).');
+      if (!payload.delegationOk) return showError('Please agree to delegate domain access so we can set up your ichat subdomain.');
+    } else if (payload.appPassword.length < 8) {
+      return showError('Please enter the app password from your email platform (see the steps above).');
+    }
 
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Signing Up…';
+    submitBtn.textContent = 'Reserving…';
 
     try {
       const r = await fetch('/api/ichat-signup', {
@@ -233,22 +375,26 @@
       const j = await r.json().catch(() => ({}));
 
       if (r.ok && j.ok) {
+        renderMeter(CAP - j.seatsRemaining);
         form.style.display = 'none';
-        document.getElementById('seatNumber').textContent = '#' + j.seatNumber;
-        successState.style.display = 'block';
-        loadSeats();
+        $('seatNumber').textContent = j.seatNumber;
+        $('successNext').textContent = custom
+          ? 'We’ll reach out with the steps to delegate access at ' + payload.domainProvider + ' and set up ichat.' + payload.domain + '.'
+          : 'We’ll email you when your iChat beta access is ready.';
+        $('successState').style.display = 'block';
         return;
       }
+      if (r.status === 409 && j.error === 'full') { renderMeter(CAP); showFull(); return; }
       if (r.status === 409 && j.error === 'duplicate') {
-        showError('This email is already signed up.');
+        showError('This email is already signed up for the beta.');
       } else {
-        showError(j.message || (typeof j.error === 'string' && j.error) || 'Something went wrong. Please try again.');
+        showError(j.message || (typeof j.error === 'string' && j.error !== 'full' && j.error) || 'Something went wrong. Please try again.');
       }
     } catch (err) {
       showError('Network error. Please try again.');
     } finally {
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Sign Me Up';
+      submitBtn.textContent = 'Reserve My Beta Seat';
     }
   });
 </script>

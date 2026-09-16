@@ -1,5 +1,7 @@
 const { createClient } = require('@supabase/supabase-js');
 
+const SEAT_CAP = 20;
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -21,9 +23,15 @@ module.exports = async function handler(req, res) {
 
   if (error) {
     console.error('seat count failed:', error.message);
-    return res.status(500).json({ error: 'Could not load signup count' });
+    return res.status(500).json({ error: 'Could not load seat count' });
   }
 
+  const confirmed = Math.min(count || 0, SEAT_CAP);
   res.setHeader('Cache-Control', 'no-store');
-  return res.status(200).json({ confirmed: count || 0 });
+  return res.status(200).json({
+    confirmed,
+    cap: SEAT_CAP,
+    remaining: SEAT_CAP - confirmed,
+    open: confirmed < SEAT_CAP,
+  });
 };

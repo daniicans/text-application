@@ -64,25 +64,22 @@
   .header p { font-size: 14px; opacity: 0.8; line-height: 1.5; }
   .body { padding: 28px 36px 36px; }
 
-  /* Seat meter */
-  .meter { margin-bottom: 28px; }
-  .meter-top {
-    display: flex; justify-content: space-between; align-items: baseline;
-    margin-bottom: 10px;
+  /* Signup counter */
+  .counter {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--green-tint); border: 1px solid var(--green-line);
+    border-radius: 12px; padding: 12px 16px; margin-bottom: 26px;
   }
-  .meter-label {
-    font-size: 10px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.1em; color: var(--green);
+  .counter .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--green-bright); flex-shrink: 0;
+    animation: pulse 2s ease-in-out infinite;
   }
-  .meter-count { font-size: 13px; font-weight: 700; color: var(--ink); }
-  .meter-count.loading { color: var(--faint); font-weight: 500; }
-  .seats { display: flex; gap: 6px; }
-  .seat {
-    flex: 1; height: 10px; border-radius: 999px;
-    background: var(--line);
-    transition: background 0.4s ease;
-  }
-  .seat.taken { background: var(--green-bright); }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+  .counter span { font-size: 13px; font-weight: 600; color: var(--green); }
+  .counter span b { font-weight: 800; }
+  .counter.loading span { color: var(--muted); font-weight: 500; }
+  .counter.loading .dot { background: var(--faint); }
 
   /* Form */
   .field { margin-bottom: 18px; }
@@ -114,14 +111,13 @@
   }
   .msg.error { display: block; background: var(--red-tint); border: 1px solid var(--red-line); color: var(--red); }
 
-  /* Success + full states */
+  /* Success state */
   .state { display: none; text-align: center; padding: 8px 0 4px; }
   .state .icon {
     width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 16px;
     display: flex; align-items: center; justify-content: center; font-size: 26px;
+    background: var(--green-tint); border: 1px solid var(--green-line);
   }
-  .state.success .icon { background: var(--green-tint); border: 1px solid var(--green-line); }
-  .state.full .icon { background: var(--bg); border: 1px solid var(--line); }
   .state h2 { font-size: 20px; font-weight: 800; letter-spacing: -0.01em; margin-bottom: 8px; }
   .state p { font-size: 14px; color: var(--muted); line-height: 1.6; }
   .state .seatnum { color: var(--green); font-weight: 700; }
@@ -137,15 +133,12 @@
     <div class="header">
       <div class="badge">Private Beta</div>
       <h1>iChat Beta Signup</h1>
-      <p>Send and receive texts from your Mac with iCANS. Only 10 beta seats — grab yours before they're gone.</p>
+      <p>Send and receive texts from your Mac with iCANS. Sign up and we'll get you set up with beta access.</p>
     </div>
     <div class="body">
-      <div class="meter">
-        <div class="meter-top">
-          <span class="meter-label">Beta Seats</span>
-          <span class="meter-count loading" id="meterCount">Loading…</span>
-        </div>
-        <div class="seats" id="seats"></div>
+      <div class="counter loading" id="counter">
+        <div class="dot"></div>
+        <span id="counterText">Loading signups…</span>
       </div>
 
       <div class="msg error" id="errorMsg"></div>
@@ -168,52 +161,31 @@
           <input type="password" id="appPassword" name="appPassword" autocomplete="off" required>
           <p class="hint">Generate an app-specific password for your Apple&nbsp;ID at <a href="https://account.apple.com" target="_blank" rel="noopener">account.apple.com</a> → Sign-In and Security → App-Specific Passwords. It's encrypted before it's stored and only used to connect your messages.</p>
         </div>
-        <button type="submit" class="submit" id="submitBtn">Reserve My Seat</button>
+        <button type="submit" class="submit" id="submitBtn">Sign Me Up</button>
       </form>
 
-      <div class="state success" id="successState">
+      <div class="state" id="successState">
         <div class="icon">🎉</div>
         <h2>You're in!</h2>
-        <p>Seat <span class="seatnum" id="seatNumber"></span> of 10 is yours.<br>We'll email you when your iChat beta access is ready.</p>
-      </div>
-
-      <div class="state full" id="fullState">
-        <div class="icon">🔒</div>
-        <h2>The beta is full</h2>
-        <p>All 10 seats are taken. Email <a href="mailto:onboarding@icans.ai">onboarding@icans.ai</a> to join the waitlist for the next round.</p>
+        <p>You're signup <span class="seatnum" id="seatNumber"></span>.<br>We'll email you when your iChat beta access is ready.</p>
       </div>
     </div>
     <div class="footer">iCANS · iChat Beta · text.icans.ai/ichat</div>
   </div>
 
 <script>
-  const CAP = 10;
-  const seatsEl = document.getElementById('seats');
-  const meterCount = document.getElementById('meterCount');
+  const counter = document.getElementById('counter');
+  const counterText = document.getElementById('counterText');
   const form = document.getElementById('signupForm');
   const submitBtn = document.getElementById('submitBtn');
   const errorMsg = document.getElementById('errorMsg');
   const successState = document.getElementById('successState');
-  const fullState = document.getElementById('fullState');
 
-  for (let i = 0; i < CAP; i++) {
-    const d = document.createElement('div');
-    d.className = 'seat';
-    seatsEl.appendChild(d);
-  }
-
-  function renderMeter(confirmed) {
-    const dots = seatsEl.children;
-    for (let i = 0; i < CAP; i++) dots[i].classList.toggle('taken', i < confirmed);
-    meterCount.classList.remove('loading');
-    meterCount.textContent = confirmed + ' of ' + CAP + ' taken';
-  }
-
-  function showFull() {
-    form.style.display = 'none';
-    errorMsg.style.display = 'none';
-    successState.style.display = 'none';
-    fullState.style.display = 'block';
+  function renderCount(confirmed) {
+    counter.classList.remove('loading');
+    counterText.innerHTML = confirmed === 1
+      ? '<b>1</b> person has signed up'
+      : '<b>' + confirmed + '</b> people have signed up';
   }
 
   function showError(text) {
@@ -226,11 +198,10 @@
       const r = await fetch('/api/ichat-seats');
       if (!r.ok) throw new Error('bad status');
       const j = await r.json();
-      renderMeter(j.confirmed);
-      if (!j.open) showFull();
+      renderCount(j.confirmed);
     } catch (e) {
-      meterCount.classList.remove('loading');
-      meterCount.textContent = 'Couldn’t load seats';
+      counter.classList.remove('loading');
+      counterText.textContent = 'Couldn’t load signup count';
     }
   }
   loadSeats();
@@ -251,7 +222,7 @@
     if (payload.appPassword.length < 8) return showError('Please enter your app-specific password (at least 8 characters).');
 
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Reserving…';
+    submitBtn.textContent = 'Signing Up…';
 
     try {
       const r = await fetch('/api/ichat-signup', {
@@ -262,27 +233,22 @@
       const j = await r.json().catch(() => ({}));
 
       if (r.ok && j.ok) {
-        renderMeter(CAP - j.seatsRemaining);
         form.style.display = 'none';
-        document.getElementById('seatNumber').textContent = j.seatNumber;
+        document.getElementById('seatNumber').textContent = '#' + j.seatNumber;
         successState.style.display = 'block';
-        return;
-      }
-      if (r.status === 409 && j.error === 'full') {
-        renderMeter(CAP);
-        showFull();
+        loadSeats();
         return;
       }
       if (r.status === 409 && j.error === 'duplicate') {
-        showError('This email already has a beta seat.');
+        showError('This email is already signed up.');
       } else {
-        showError(j.error && j.error !== 'full' ? (j.message || j.error) : 'Something went wrong. Please try again.');
+        showError(j.message || (typeof j.error === 'string' && j.error) || 'Something went wrong. Please try again.');
       }
     } catch (err) {
       showError('Network error. Please try again.');
     } finally {
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Reserve My Seat';
+      submitBtn.textContent = 'Sign Me Up';
     }
   });
 </script>

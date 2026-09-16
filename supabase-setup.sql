@@ -9,7 +9,7 @@
 create extension if not exists pgcrypto;
 
 -- ------------------------------------------------------------
--- Table 1: confirmed beta signups (one row per reserved seat)
+-- Table 1: confirmed beta signups (one row per seat, uncapped)
 -- ------------------------------------------------------------
 create table if not exists public.ichat_beta_signups (
   id          uuid primary key default gen_random_uuid(),
@@ -17,7 +17,7 @@ create table if not exists public.ichat_beta_signups (
   full_name   text not null,
   email       text not null,
   phone       text,
-  seat_number integer not null check (seat_number between 1 and 10),
+  seat_number integer not null check (seat_number >= 1),
   status      text not null default 'confirmed' check (status in ('confirmed', 'cancelled'))
 );
 
@@ -45,34 +45,28 @@ alter table public.ichat_beta_signups enable row level security;
 alter table public.ichat_beta_app_passwords enable row level security;
 
 -- ------------------------------------------------------------
--- RPC: reserve_ichat_seat — atomically reserves one of the 10
--- beta seats. Raises BETA_FULL when all seats are taken and
--- ALREADY_SIGNED_UP when the email already holds a seat.
+-- RPC: reserve_ichat_seat — atomically assigns the next seat
+-- number. Raises ALREADY_SIGNED_UP when the email already
+-- holds a seat.
 -- ------------------------------------------------------------
-create or replace function public.reserve_ichat_seat(
+drop function if exists public.reserve_ichat_seat(text, text, text);
+
+create function public.reserve_ichat_seat(
   p_full_name text,
   p_email     text,
   p_phone     text default null
 )
-returns table (signup_id uuid, seat_number integer, seats_remaining integer)
+returns table (signup_id uuid, seat_number integer)
 language plpgsql
 security definer
 set search_path = public
 as $$
 declare
-  v_confirmed integer;
-  v_seat      integer;
-  v_id        uuid;
+  v_seat integer;
+  v_id   uuid;
 begin
   -- Serialize concurrent reservations for the duration of this transaction.
   perform pg_advisory_xact_lock(hashtext('ichat_beta_seats'));
-
-  select count(*) into v_confirmed
-    from ichat_beta_signups where status = 'confirmed';
-
-  if v_confirmed >= 10 then
-    raise exception 'BETA_FULL';
-  end if;
 
   if exists (
     select 1 from ichat_beta_signups
@@ -81,18 +75,14 @@ begin
     raise exception 'ALREADY_SIGNED_UP';
   end if;
 
-  -- Smallest free seat number (cancelled seats are reused).
-  select min(n) into v_seat
-    from generate_series(1, 10) as n
-   where n not in (
-     select s.seat_number from ichat_beta_signups s where s.status = 'confirmed'
-   );
+  select coalesce(max(s.seat_number), 0) + 1 into v_seat
+    from ichat_beta_signups s;
 
   insert into ichat_beta_signups (full_name, email, phone, seat_number)
   values (p_full_name, p_email, nullif(p_phone, ''), v_seat)
   returning id into v_id;
 
-  return query select v_id, v_seat, 10 - (v_confirmed + 1);
+  return query select v_id, v_seat;
 end;
 $$;
 

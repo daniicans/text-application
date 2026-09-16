@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>iChat Beta — iCANS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1A1830;
+    --purple: #494A7D;
+    --purple-soft: #5E5F94;
+    --green: #2E9039;
+    --green-bright: #3FB94C;
+    --green-tint: #ECFAEE;
+    --green-line: #D6F3DA;
+    --muted: #6E6A93;
+    --faint: #B5B2C9;
+    --line: #E8E7EE;
+    --bg: #F4F3F8;
+    --red: #C9352B;
+    --red-tint: #FEF2F2;
+    --red-line: #FCA5A5;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+  }
+  .card {
+    width: 100%;
+    max-width: 520px;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 4px 24px rgba(73,74,125,0.12);
+    overflow: hidden;
+  }
+  .header {
+    background: var(--purple);
+    color: #fff;
+    padding: 32px 36px 28px;
+  }
+  .header .badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .header h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 6px; }
+  .header p { font-size: 14px; opacity: 0.8; line-height: 1.5; }
+  .body { padding: 28px 36px 36px; }
+
+  /* Seat meter */
+  .meter { margin-bottom: 28px; }
+  .meter-top {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 10px;
+  }
+  .meter-label {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--green);
+  }
+  .meter-count { font-size: 13px; font-weight: 700; color: var(--ink); }
+  .meter-count.loading { color: var(--faint); font-weight: 500; }
+  .seats { display: flex; gap: 6px; }
+  .seat {
+    flex: 1; height: 10px; border-radius: 999px;
+    background: var(--line);
+    transition: background 0.4s ease;
+  }
+  .seat.taken { background: var(--green-bright); }
+
+  /* Form */
+  .field { margin-bottom: 18px; }
+  label {
+    display: block; font-size: 12px; font-weight: 600;
+    color: var(--muted); margin-bottom: 6px;
+  }
+  label .opt { font-weight: 400; color: var(--faint); }
+  input {
+    width: 100%; font-family: inherit; font-size: 15px; color: var(--ink);
+    padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 10px;
+    background: #FBFAF9; outline: none; transition: border-color 0.15s ease;
+  }
+  input:focus { border-color: var(--purple); background: #fff; }
+  .hint { font-size: 12px; color: var(--faint); margin-top: 6px; line-height: 1.5; }
+  .hint a { color: var(--purple-soft); }
+  button.submit {
+    width: 100%; font-family: inherit; font-size: 15px; font-weight: 700;
+    color: #fff; background: var(--purple); border: none; border-radius: 12px;
+    padding: 15px; cursor: pointer; margin-top: 6px;
+    transition: background 0.15s ease, opacity 0.15s ease;
+  }
+  button.submit:hover { background: var(--purple-soft); }
+  button.submit:disabled { opacity: 0.55; cursor: default; }
+
+  .msg {
+    display: none; margin-bottom: 18px; padding: 12px 14px;
+    border-radius: 10px; font-size: 13px; font-weight: 500; line-height: 1.5;
+  }
+  .msg.error { display: block; background: var(--red-tint); border: 1px solid var(--red-line); color: var(--red); }
+
+  /* Success + full states */
+  .state { display: none; text-align: center; padding: 8px 0 4px; }
+  .state .icon {
+    width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 16px;
+    display: flex; align-items: center; justify-content: center; font-size: 26px;
+  }
+  .state.success .icon { background: var(--green-tint); border: 1px solid var(--green-line); }
+  .state.full .icon { background: var(--bg); border: 1px solid var(--line); }
+  .state h2 { font-size: 20px; font-weight: 800; letter-spacing: -0.01em; margin-bottom: 8px; }
+  .state p { font-size: 14px; color: var(--muted); line-height: 1.6; }
+  .state .seatnum { color: var(--green); font-weight: 700; }
+
+  .footer {
+    background: var(--bg); border-top: 1px solid var(--line);
+    padding: 14px 36px; font-size: 11px; color: var(--muted); text-align: center;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <div class="badge">Private Beta</div>
+      <h1>iChat Beta Signup</h1>
+      <p>Send and receive texts from your Mac with iCANS. Only 10 beta seats — grab yours before they're gone.</p>
+    </div>
+    <div class="body">
+      <div class="meter">
+        <div class="meter-top">
+          <span class="meter-label">Beta Seats</span>
+          <span class="meter-count loading" id="meterCount">Loading…</span>
+        </div>
+        <div class="seats" id="seats"></div>
+      </div>
+
+      <div class="msg error" id="errorMsg"></div>
+
+      <form id="signupForm" novalidate>
+        <div class="field">
+          <label for="fullName">Full Name</label>
+          <input type="text" id="fullName" name="fullName" autocomplete="name" required>
+        </div>
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" autocomplete="email" required>
+        </div>
+        <div class="field">
+          <label for="phone">Phone <span class="opt">(optional)</span></label>
+          <input type="tel" id="phone" name="phone" autocomplete="tel">
+        </div>
+        <div class="field">
+          <label for="appPassword">App-Specific Password</label>
+          <input type="password" id="appPassword" name="appPassword" autocomplete="off" required>
+          <p class="hint">Generate an app-specific password for your Apple&nbsp;ID at <a href="https://account.apple.com" target="_blank" rel="noopener">account.apple.com</a> → Sign-In and Security → App-Specific Passwords. It's encrypted before it's stored and only used to connect your messages.</p>
+        </div>
+        <button type="submit" class="submit" id="submitBtn">Reserve My Seat</button>
+      </form>
+
+      <div class="state success" id="successState">
+        <div class="icon">🎉</div>
+        <h2>You're in!</h2>
+        <p>Seat <span class="seatnum" id="seatNumber"></span> of 10 is yours.<br>We'll email you when your iChat beta access is ready.</p>
+      </div>
+
+      <div class="state full" id="fullState">
+        <div class="icon">🔒</div>
+        <h2>The beta is full</h2>
+        <p>All 10 seats are taken. Email <a href="mailto:onboarding@icans.ai">onboarding@icans.ai</a> to join the waitlist for the next round.</p>
+      </div>
+    </div>
+    <div class="footer">iCANS · iChat Beta · text.icans.ai/ichat</div>
+  </div>
+
+<script>
+  const CAP = 10;
+  const seatsEl = document.getElementById('seats');
+  const meterCount = document.getElementById('meterCount');
+  const form = document.getElementById('signupForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const errorMsg = document.getElementById('errorMsg');
+  const successState = document.getElementById('successState');
+  const fullState = document.getElementById('fullState');
+
+  for (let i = 0; i < CAP; i++) {
+    const d = document.createElement('div');
+    d.className = 'seat';
+    seatsEl.appendChild(d);
+  }
+
+  function renderMeter(confirmed) {
+    const dots = seatsEl.children;
+    for (let i = 0; i < CAP; i++) dots[i].classList.toggle('taken', i < confirmed);
+    meterCount.classList.remove('loading');
+    meterCount.textContent = confirmed + ' of ' + CAP + ' taken';
+  }
+
+  function showFull() {
+    form.style.display = 'none';
+    errorMsg.style.display = 'none';
+    successState.style.display = 'none';
+    fullState.style.display = 'block';
+  }
+
+  function showError(text) {
+    errorMsg.textContent = text;
+    errorMsg.style.display = 'block';
+  }
+
+  async function loadSeats() {
+    try {
+      const r = await fetch('/api/ichat-seats');
+      if (!r.ok) throw new Error('bad status');
+      const j = await r.json();
+      renderMeter(j.confirmed);
+      if (!j.open) showFull();
+    } catch (e) {
+      meterCount.classList.remove('loading');
+      meterCount.textContent = 'Couldn’t load seats';
+    }
+  }
+  loadSeats();
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorMsg.style.display = 'none';
+
+    const payload = {
+      fullName: document.getElementById('fullName').value.trim(),
+      email: document.getElementById('email').value.trim(),
+      phone: document.getElementById('phone').value.trim(),
+      appPassword: document.getElementById('appPassword').value,
+    };
+
+    if (payload.fullName.length < 2) return showError('Please enter your full name.');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(payload.email)) return showError('Please enter a valid email address.');
+    if (payload.appPassword.length < 8) return showError('Please enter your app-specific password (at least 8 characters).');
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Reserving…';
+
+    try {
+      const r = await fetch('/api/ichat-signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const j = await r.json().catch(() => ({}));
+
+      if (r.ok && j.ok) {
+        renderMeter(CAP - j.seatsRemaining);
+        form.style.display = 'none';
+        document.getElementById('seatNumber').textContent = j.seatNumber;
+        successState.style.display = 'block';
+        return;
+      }
+      if (r.status === 409 && j.error === 'full') {
+        renderMeter(CAP);
+        showFull();
+        return;
+      }
+      if (r.status === 409 && j.error === 'duplicate') {
+        showError('This email already has a beta seat.');
+      } else {
+        showError(j.error && j.error !== 'full' ? (j.message || j.error) : 'Something went wrong. Please try again.');
+      }
+    } catch (err) {
+      showError('Network error. Please try again.');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Reserve My Seat';
+    }
+  });
+</script>
+</body>
+</html>

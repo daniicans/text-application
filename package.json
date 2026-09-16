@@ -4,6 +4,8 @@
   "description": "icans A2P SMS onboarding form",
   "private": true,
   "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "docx": "^9.7.1",
     "nodemailer": "^6.9.14"
   },
   "engines": {

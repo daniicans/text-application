@@ -7,6 +7,7 @@ const DOMAIN_RE = /^(?!-)[a-z0-9-]{1,63}(?<!-)(\.(?!-)[a-z0-9-]{1,63}(?<!-))+$/i
 // Platforms that connect via an app password; custom-domain connects via DNS delegation instead.
 const APP_PASSWORD_PLATFORMS = ['gmail', 'yahoo', 'outlook', 'icloud', 'other'];
 const PLATFORMS = [...APP_PASSWORD_PLATFORMS, 'custom-domain'];
+const DOMAIN_PROVIDERS = ['godaddy', 'namecheap', 'cloudflare', 'squarespace', 'wix', 'hostinger', 'other'];
 
 function encryptAppPassword(plaintext, hexKey) {
   const key = Buffer.from(hexKey, 'hex');
@@ -73,11 +74,11 @@ module.exports = async function handler(req, res) {
     if (!DOMAIN_RE.test(domain) || domain.length > 253) {
       return res.status(400).json({ error: 'Please enter your custom domain (e.g. yourcompany.com)' });
     }
-    if (domainProvider.length < 2 || domainProvider.length > 80) {
-      return res.status(400).json({ error: 'Please tell us where your domain is managed (e.g. GoDaddy, Cloudflare)' });
+    if (!DOMAIN_PROVIDERS.includes(domainProvider.toLowerCase())) {
+      return res.status(400).json({ error: 'Please select your domain carrier' });
     }
     if (!delegationOk) {
-      return res.status(400).json({ error: 'Please agree to delegate domain access so we can set up your ichat subdomain' });
+      return res.status(400).json({ error: 'Please delegate access to onboarding@icans.ai at your domain carrier, then check the box' });
     }
   } else if (appPassword.length < 8 || appPassword.length > 256) {
     return res.status(400).json({ error: 'Please enter the app password for your email platform' });

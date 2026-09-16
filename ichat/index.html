@@ -3,151 +3,274 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>iChat Beta — iCANS</title>
+<title>iChat Beta — icans</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --ink: #1A1830;
-    --purple: #494A7D;
-    --purple-soft: #5E5F94;
-    --purple-tint: #EEEEF6;
-    --green: #2E9039;
-    --green-bright: #3FB94C;
-    --green-tint: #ECFAEE;
-    --green-line: #D6F3DA;
-    --muted: #6E6A93;
-    --faint: #B5B2C9;
-    --line: #E8E7EE;
-    --bg: #F4F3F8;
-    --red: #C9352B;
-    --red-tint: #FEF2F2;
-    --red-line: #FCA5A5;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: 'Inter', sans-serif;
-    background: var(--bg);
-    color: var(--ink);
-    min-height: 100vh;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    padding: 32px 16px;
-  }
-  .card {
-    width: 100%;
-    max-width: 560px;
-    background: #fff;
-    border-radius: 20px;
-    box-shadow: 0 4px 24px rgba(73,74,125,0.12);
-    overflow: hidden;
-  }
-  .header { background: var(--purple); color: #fff; padding: 32px 36px 28px; }
-  .header .badge {
-    display: inline-block;
-    background: rgba(255,255,255,0.14);
-    border: 1px solid rgba(255,255,255,0.25);
-    border-radius: 999px;
-    padding: 4px 12px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    margin-bottom: 14px;
-  }
-  .header h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 6px; }
-  .header p { font-size: 14px; opacity: 0.8; line-height: 1.5; }
-  .body { padding: 28px 36px 36px; }
+:root {
+  --brand: #3FB94C;
+  --brand-deep: #2E9039;
+  --brand-50: #ECFAEE;
+  --brand-100: #D6F3DA;
+  --ink: #494A7D;
+  --ink-700: #5E5F94;
+  --ink-500: #6E6A93;
+  --ink-300: #B5B2C9;
+  --ink-100: #E8E7EE;
+  --ink-50: #F4F3F8;
+  --bg: #FBFAF9;
+  --surface: #FFFFFF;
+  --line: rgba(73,74,125,0.10);
+  --line-strong: rgba(73,74,125,0.18);
+  --text: #1A1830;
+  --text-muted: #6E6A93;
+  --danger: #C9352B;
+  --danger-50: #FEF2F2;
+  --danger-200: #FCA5A5;
+  --tiger: #F47A1F;
+  --tiger-deep: #C75A0E;
+  --shadow-lg: 0 18px 50px -16px rgba(73,74,125,0.30);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+}
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
 
-  /* Seat meter */
-  .meter { margin-bottom: 26px; }
-  .meter-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
-  .meter-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--green); }
-  .meter-count { font-size: 13px; font-weight: 700; }
-  .meter-count.loading { color: var(--faint); font-weight: 500; }
-  .bar { height: 10px; border-radius: 999px; background: var(--line); overflow: hidden; }
-  .bar .fill { height: 100%; width: 0%; border-radius: 999px; background: var(--green-bright); transition: width 0.5s ease; }
+/* HEADER — matches the texting application */
+.tg-hdr {
+  display: flex; align-items: center; gap: 16px;
+  padding: 12px 28px;
+  background: rgba(251,250,249,0.85);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line);
+  position: sticky; top: 0; z-index: 10;
+}
+.tg-logo { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+.tg-logo-mark {
+  width: 30px; height: 30px; border-radius: 8px;
+  background: linear-gradient(135deg, var(--tiger) 0%, var(--tiger-deep) 100%);
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-weight: 700; font-size: 15px; letter-spacing: -0.02em;
+}
+.tg-brand-name { font-size: 15px; color: var(--ink); letter-spacing: -0.01em; }
+.tg-divider { width: 1px; height: 16px; background: var(--line-strong); }
+.tg-product {
+  font-size: 12px; font-weight: 600; color: var(--ink-700);
+  background: var(--ink-50); padding: 3px 9px; border-radius: 999px;
+}
+.tg-hdr-spacer { flex: 1; }
+.tg-hdr-help {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: var(--ink-700); font-size: 13px; font-weight: 600;
+  padding: 6px 12px; border-radius: 999px;
+  border: 1px solid var(--line-strong); white-space: nowrap;
+}
+.tg-hdr-help:hover { border-color: var(--ink); color: var(--ink); }
 
-  .section-title {
-    font-size: 10px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.1em; color: var(--green);
-    margin: 26px 0 14px; padding-bottom: 8px; border-bottom: 2px solid var(--green-tint);
-  }
-  .section-title:first-of-type { margin-top: 0; }
+/* STAGE + CARD */
+.stage {
+  flex: 1;
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 40px 20px 56px;
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 36px 44px;
+  box-shadow: var(--shadow-lg);
+  width: 100%; max-width: 640px;
+  position: relative; overflow: hidden;
+}
+.card::before {
+  content: '';
+  position: absolute; top: -100px; right: -100px;
+  width: 280px; height: 280px;
+  background: radial-gradient(circle, rgba(63,185,76,0.18), transparent 70%);
+  pointer-events: none;
+}
+.card > * { position: relative; }
+@media (max-width: 560px) { .card { padding: 28px 22px; } }
 
-  .field { margin-bottom: 18px; }
-  label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
-  input, select {
-    width: 100%; font-family: inherit; font-size: 15px; color: var(--ink);
-    padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 10px;
-    background: #FBFAF9; outline: none; transition: border-color 0.15s ease;
-    appearance: none; -webkit-appearance: none;
-  }
-  select {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236E6A93' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat; background-position: right 14px center;
-  }
-  input:focus, select:focus { border-color: var(--purple); background: #fff; }
-  .hint { font-size: 12px; color: var(--faint); margin-top: 6px; line-height: 1.5; }
-  .hint a { color: var(--purple-soft); }
+.eyebrow {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 700;
+  color: var(--brand-deep);
+  text-transform: uppercase; letter-spacing: 0.1em;
+  margin-bottom: 12px;
+}
+.eyebrow::before {
+  content: '';
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-50);
+}
+h1 {
+  font-size: 30px; font-weight: 700; letter-spacing: -0.03em;
+  line-height: 1.1; color: var(--ink); margin-bottom: 10px;
+  text-wrap: balance;
+}
+.sub { font-size: 15px; line-height: 1.55; color: var(--text-muted); margin-bottom: 24px; }
 
-  .notice {
-    background: var(--purple-tint); border: 1px solid var(--line);
-    border-radius: 10px; padding: 12px 14px; font-size: 13px;
-    color: var(--purple); line-height: 1.6; margin-bottom: 18px;
-  }
-  .notice b { font-weight: 700; }
-  .steps {
-    background: #FBFAF9; border: 1px solid var(--line); border-radius: 10px;
-    padding: 14px 16px 14px 32px; font-size: 13px; color: var(--muted);
-    line-height: 1.7; margin-bottom: 18px;
-  }
-  .steps li { margin-bottom: 4px; }
-  .steps a { color: var(--purple-soft); font-weight: 600; }
+/* SEAT METER */
+.meter { margin-bottom: 26px; }
+.meter-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+.meter-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--brand-deep); }
+.meter-count { font-size: 13px; font-weight: 700; color: var(--ink); }
+.meter-count.loading { color: var(--ink-300); font-weight: 500; }
+.bar { height: 10px; border-radius: 999px; background: var(--ink-100); overflow: hidden; }
+.bar .fill { height: 100%; width: 0%; border-radius: 999px; background: linear-gradient(90deg, var(--brand), var(--brand-deep)); transition: width 0.5s ease; }
 
-  .check { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 18px; cursor: pointer; }
-  .check input { width: 18px; height: 18px; margin-top: 1px; flex-shrink: 0; accent-color: var(--purple); appearance: auto; -webkit-appearance: auto; }
-  .check span { font-size: 13px; color: var(--ink); line-height: 1.5; font-weight: 500; }
+/* SECTIONS + FIELDS */
+.section-title {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--brand-deep);
+  margin: 26px 0 14px; padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+form .section-title:first-child { margin-top: 0; }
+.field { margin-bottom: 16px; }
+.tg-lbl { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--ink); margin-bottom: 5px; }
+.tg-lbl .req { color: var(--brand-deep); }
+.tg-inp, .tg-sel {
+  width: 100%; font-family: inherit; font-size: 14px; color: var(--text);
+  background: var(--surface); border: 1px solid var(--line-strong);
+  padding: 11px 13px; border-radius: 10px; outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.tg-inp::placeholder { color: var(--ink-300); }
+.tg-inp:hover, .tg-sel:hover { border-color: var(--ink-300); }
+.tg-inp:focus, .tg-sel:focus { border-color: var(--brand); box-shadow: 0 0 0 4px rgba(63,185,76,0.15); }
+.tg-sel {
+  appearance: none;
+  background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236E6A93' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 12px center;
+  padding-right: 32px; cursor: pointer;
+}
+.hint { font-size: 12px; color: var(--ink-500); margin-top: 5px; line-height: 1.5; }
+.hint a { color: var(--brand-deep); font-weight: 600; }
 
-  .conditional { display: none; }
-  .conditional.show { display: block; }
+/* PLATFORM RADIO CARDS — same pattern as the app's plan picker */
+.radio-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 480px) { .radio-grid { grid-template-columns: 1fr; } }
+.tg-rad {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface); border: 1px solid var(--line-strong);
+  padding: 11px 13px; border-radius: 10px; cursor: pointer;
+  transition: all .15s ease; font-size: 13px; font-weight: 600; color: var(--ink-700);
+}
+.tg-rad:hover { border-color: var(--ink-300); }
+.tg-rad-dot {
+  width: 16px; height: 16px; border-radius: 50%;
+  border: 1.5px solid var(--ink-300); flex-shrink: 0; transition: all .15s ease;
+}
+.tg-rad input { display: none; }
+.tg-rad input:checked ~ .tg-rad-dot {
+  border-color: var(--brand); background: var(--brand);
+  box-shadow: inset 0 0 0 3px var(--surface);
+}
+.tg-rad:has(input:checked) { background: var(--brand-50); border-color: var(--brand); color: var(--brand-deep); }
 
-  button.submit {
-    width: 100%; font-family: inherit; font-size: 15px; font-weight: 700;
-    color: #fff; background: var(--purple); border: none; border-radius: 12px;
-    padding: 15px; cursor: pointer; margin-top: 8px;
-    transition: background 0.15s ease, opacity 0.15s ease;
-  }
-  button.submit:hover { background: var(--purple-soft); }
-  button.submit:disabled { opacity: 0.55; cursor: default; }
+/* CHECK ROWS */
+.check {
+  display: flex; gap: 10px; align-items: flex-start;
+  background: var(--surface); border: 1px solid var(--line-strong);
+  border-radius: 10px; padding: 12px 13px; cursor: pointer;
+  margin-bottom: 16px; transition: all .15s ease;
+}
+.check:hover { border-color: var(--ink-300); }
+.check:has(input:checked) { background: var(--brand-50); border-color: var(--brand); }
+.check input { width: 16px; height: 16px; margin-top: 2px; flex-shrink: 0; accent-color: var(--brand-deep); }
+.check span { font-size: 13px; color: var(--ink-700); line-height: 1.5; font-weight: 500; }
+.check span b { color: var(--ink); }
 
-  .msg { display: none; margin-bottom: 18px; padding: 12px 14px; border-radius: 10px; font-size: 13px; font-weight: 500; line-height: 1.5; }
-  .msg.error { display: block; background: var(--red-tint); border: 1px solid var(--red-line); color: var(--red); }
+/* NOTICES + INSTRUCTIONS */
+.notice {
+  background: var(--brand-50); border: 1px solid var(--brand-100);
+  border-radius: 10px; padding: 12px 14px;
+  font-size: 13px; color: var(--brand-deep); line-height: 1.6;
+  margin-bottom: 16px; font-weight: 500;
+}
+.notice b { font-weight: 700; }
+.steps {
+  background: var(--ink-50); border: 1px solid var(--line);
+  border-radius: 10px; padding: 14px 16px;
+  font-size: 13px; color: var(--ink-700); line-height: 1.7;
+  margin-bottom: 16px;
+}
+.steps b { color: var(--ink); }
+.steps ol { padding-left: 18px; margin-top: 6px; }
+.steps li { margin-bottom: 4px; }
+.steps a { color: var(--brand-deep); font-weight: 600; }
+.steps .copyable {
+  background: var(--surface); border: 1px solid var(--line-strong);
+  border-radius: 6px; padding: 1px 7px;
+  font-size: 12px; font-weight: 600; color: var(--ink);
+}
 
-  .state { display: none; text-align: center; padding: 8px 0 4px; }
-  .state .icon {
-    width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 16px;
-    display: flex; align-items: center; justify-content: center; font-size: 26px;
-  }
-  .state.success .icon { background: var(--green-tint); border: 1px solid var(--green-line); }
-  .state.full .icon { background: var(--bg); border: 1px solid var(--line); }
-  .state h2 { font-size: 20px; font-weight: 800; letter-spacing: -0.01em; margin-bottom: 8px; }
-  .state p { font-size: 14px; color: var(--muted); line-height: 1.6; }
-  .state .seatnum { color: var(--green); font-weight: 700; }
+.conditional { display: none; }
+.conditional.show { display: block; }
 
-  .footer { background: var(--bg); border-top: 1px solid var(--line); padding: 14px 36px; font-size: 11px; color: var(--muted); text-align: center; }
+/* SUBMIT — green pill like the app */
+.tg-btn-primary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%;
+  font-size: 14px; font-weight: 600;
+  padding: 14px 22px; border-radius: 999px;
+  background: var(--brand); color: white;
+  transition: all .15s ease;
+  margin-top: 10px;
+}
+.tg-btn-primary:hover { background: var(--brand-deep); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(63,185,76,0.32); }
+.tg-btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* MESSAGES — hidden until .show is added */
+.msg {
+  display: none;
+  margin-bottom: 18px; padding: 12px 14px; border-radius: 10px;
+  font-size: 13px; font-weight: 500; line-height: 1.5;
+}
+.msg.show { display: block; }
+.msg.error { background: var(--danger-50); border: 1px solid var(--danger-200); color: var(--danger); }
+
+/* SUCCESS + FULL STATES */
+.state { display: none; text-align: center; padding: 8px 0 4px; }
+.state .icon {
+  width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 16px;
+  display: flex; align-items: center; justify-content: center; font-size: 26px;
+}
+.state.success .icon { background: var(--brand-50); border: 1px solid var(--brand-100); }
+.state.full .icon { background: var(--ink-50); border: 1px solid var(--ink-100); }
+.state h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink); margin-bottom: 8px; }
+.state p { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+.state .seatnum { color: var(--brand-deep); font-weight: 700; }
+.state a { color: var(--brand-deep); font-weight: 600; }
 </style>
 </head>
 <body>
-  <div class="card">
-    <div class="header">
-      <div class="badge">Private Beta · Plus Plan Only</div>
-      <h1>iChat Beta Signup</h1>
-      <p>Send and receive emails and two-way SMS from one place with iCANS iChat. 20 beta seats, exclusively for Plus plan subscribers.</p>
+  <header class="tg-hdr">
+    <div class="tg-logo">
+      <div class="tg-logo-mark">i</div>
+      <span class="tg-brand-name">icans</span>
     </div>
-    <div class="body">
+    <div class="tg-divider"></div>
+    <span class="tg-product">iChat Beta</span>
+    <div class="tg-hdr-spacer"></div>
+    <a class="tg-hdr-help" href="mailto:onboarding@icans.ai">Help</a>
+  </header>
+
+  <main class="stage">
+    <div class="card">
+      <span class="eyebrow">iChat · Private Beta · Plus Plan Only</span>
+      <h1>Get early access to iChat</h1>
+      <p class="sub">Send and receive emails and two-way SMS from one place with iCANS iChat. 20 beta seats, exclusively for Plus plan subscribers.</p>
+
       <div class="meter">
         <div class="meter-top">
           <span class="meter-label">Beta Seats</span>
@@ -162,62 +285,71 @@
         <p class="section-title">Your Account</p>
         <label class="check">
           <input type="checkbox" id="planConfirmed">
-          <span>I'm an iCANS <b>Plus plan</b> subscriber. <span style="color:var(--muted);font-weight:400;">(The beta is Plus-only — we'll verify against your account before onboarding.)</span></span>
+          <span>I'm an iCANS <b>Plus plan</b> subscriber. The beta is Plus-only — we'll verify against your account before onboarding.</span>
         </label>
         <div class="field">
-          <label for="fullName">Full Name</label>
-          <input type="text" id="fullName" autocomplete="name" required>
+          <label class="tg-lbl" for="fullName">Full Name <span class="req">*</span></label>
+          <input class="tg-inp" type="text" id="fullName" autocomplete="name" required>
         </div>
         <div class="field">
-          <label for="companyName">Company Name</label>
-          <input type="text" id="companyName" autocomplete="organization" required>
+          <label class="tg-lbl" for="companyName">Company Name <span class="req">*</span></label>
+          <input class="tg-inp" type="text" id="companyName" autocomplete="organization" required>
         </div>
         <div class="field">
-          <label for="email">Account Email</label>
-          <input type="email" id="email" autocomplete="email" required>
+          <label class="tg-lbl" for="email">Account Email <span class="req">*</span></label>
+          <input class="tg-inp" type="email" id="email" autocomplete="email" required>
           <p class="hint">The email on your iCANS account — we use this to verify your Plus plan.</p>
         </div>
         <div class="field">
-          <label for="phone">Phone</label>
-          <input type="tel" id="phone" autocomplete="tel" required>
+          <label class="tg-lbl" for="phone">Phone <span class="req">*</span></label>
+          <input class="tg-inp" type="tel" id="phone" autocomplete="tel" required>
           <p class="hint">iChat includes two-way SMS, so we need a working number.</p>
         </div>
 
         <p class="section-title">Your Email Setup</p>
         <div class="field">
-          <label for="mainEmail">Email iChat Should Send &amp; Receive From</label>
-          <input type="email" id="mainEmail" required>
+          <label class="tg-lbl" for="mainEmail">Email iChat Should Send &amp; Receive From <span class="req">*</span></label>
+          <input class="tg-inp" type="email" id="mainEmail" required>
           <p class="hint">Only one email can be connected per account.</p>
         </div>
         <div class="field">
-          <label for="emailPlatform">Email Platform</label>
-          <select id="emailPlatform" required>
-            <option value="">Select your platform…</option>
-            <option value="gmail">Gmail</option>
-            <option value="yahoo">Yahoo Mail</option>
-            <option value="outlook">Outlook / Hotmail</option>
-            <option value="icloud">iCloud Mail</option>
-            <option value="custom-domain">Custom domain email (e.g. you@yourcompany.com)</option>
-            <option value="other">Other</option>
-          </select>
+          <label class="tg-lbl">Email Platform <span class="req">*</span></label>
+          <div class="radio-grid" id="platformGrid">
+            <label class="tg-rad"><input type="radio" name="emailPlatform" value="gmail"><span class="tg-rad-dot"></span>Gmail</label>
+            <label class="tg-rad"><input type="radio" name="emailPlatform" value="yahoo"><span class="tg-rad-dot"></span>Yahoo Mail</label>
+            <label class="tg-rad"><input type="radio" name="emailPlatform" value="outlook"><span class="tg-rad-dot"></span>Outlook / Hotmail</label>
+            <label class="tg-rad"><input type="radio" name="emailPlatform" value="icloud"><span class="tg-rad-dot"></span>iCloud Mail</label>
+            <label class="tg-rad"><input type="radio" name="emailPlatform" value="custom-domain"><span class="tg-rad-dot"></span>Custom domain email</label>
+            <label class="tg-rad"><input type="radio" name="emailPlatform" value="other"><span class="tg-rad-dot"></span>Other</label>
+          </div>
         </div>
 
         <!-- Custom domain path -->
         <div class="conditional" id="customDomainSection">
           <div class="notice" id="subdomainNotice">
-            We'll create a subdomain — <b id="subdomainPreview">ichat.yourdomain.com</b> — for your iChat emails. Your existing email keeps working exactly as it does today.
+            We'll create <b id="subdomainPreview">ichat.yourdomain.com</b> for your iChat emails. Your existing email keeps working exactly as it does today.
           </div>
           <div class="field">
-            <label for="domain">Your Domain</label>
-            <input type="text" id="domain" placeholder="yourcompany.com" autocomplete="off">
+            <label class="tg-lbl" for="domain">Your Domain <span class="req">*</span></label>
+            <input class="tg-inp" type="text" id="domain" placeholder="yourcompany.com" autocomplete="off">
           </div>
           <div class="field">
-            <label for="domainProvider">Where Is Your Domain Managed?</label>
-            <input type="text" id="domainProvider" placeholder="e.g. GoDaddy, Namecheap, Cloudflare, Squarespace" autocomplete="off">
+            <label class="tg-lbl" for="domainProvider">Domain Carrier <span class="req">*</span></label>
+            <select class="tg-sel" id="domainProvider">
+              <option value="">Select where your domain is managed…</option>
+              <option value="godaddy">GoDaddy</option>
+              <option value="namecheap">Namecheap</option>
+              <option value="cloudflare">Cloudflare</option>
+              <option value="squarespace">Squarespace (incl. former Google Domains)</option>
+              <option value="wix">Wix</option>
+              <option value="hostinger">Hostinger</option>
+              <option value="other">Other</option>
+            </select>
           </div>
-          <label class="check">
+          <div class="steps conditional" id="delegationInstructions"></div>
+          <label class="check conditional" id="delegationCheckWrap">
             <input type="checkbox" id="delegationOk">
-            <span>I agree to delegate access to my domain platform so iCANS can set up the <b>ichat</b> subdomain. We'll contact you with the delegation steps for your provider.</span>
+            <span>I have delegated access to <b>onboarding@icans.ai</b> at my domain carrier using the steps above.</span>
           </label>
         </div>
 
@@ -225,13 +357,13 @@
         <div class="conditional" id="appPasswordSection">
           <div class="steps" id="pwInstructions"></div>
           <div class="field">
-            <label for="appPassword">App Password</label>
-            <input type="password" id="appPassword" autocomplete="off">
+            <label class="tg-lbl" for="appPassword">App Password <span class="req">*</span></label>
+            <input class="tg-inp" type="password" id="appPassword" autocomplete="off">
             <p class="hint">Encrypted before it's stored, and only used to connect your inbox to iChat.</p>
           </div>
         </div>
 
-        <button type="submit" class="submit" id="submitBtn">Reserve My Beta Seat</button>
+        <button type="submit" class="tg-btn-primary" id="submitBtn">Reserve My Beta Seat</button>
       </form>
 
       <div class="state success" id="successState">
@@ -246,8 +378,7 @@
         <p>All 20 seats are taken. Email <a href="mailto:onboarding@icans.ai">onboarding@icans.ai</a> to join the waitlist for the next round.</p>
       </div>
     </div>
-    <div class="footer">iCANS · iChat Beta · text.icans.ai/ichat</div>
-  </div>
+  </main>
 
 <script>
   const CAP = 20;
@@ -264,6 +395,17 @@
     other: '<b>Get an app password from your email provider:</b><ol><li>Sign in to your email provider’s account security settings.</li><li>Look for <b>App passwords</b> or <b>App-specific passwords</b> (you may need two-step verification on).</li><li>Generate one named <b>iChat</b> and paste it below.</li></ol>',
   };
 
+  const DELEGATE_EMAIL = '<span class="copyable">onboarding@icans.ai</span>';
+  const DELEGATION_INSTRUCTIONS = {
+    godaddy: '<b>Delegate access on GoDaddy:</b><ol><li>Sign in at <a href="https://godaddy.com" target="_blank" rel="noopener">godaddy.com</a>.</li><li>Open your name in the top corner → <b>Account Settings</b> → <b>Delegate Access</b>.</li><li>Click <b>Invite to Access</b>, enter the name <b>iCANS</b> and email ' + DELEGATE_EMAIL + '.</li><li>Choose <b>Products &amp; Domains</b> access and send the invite.</li></ol>',
+    namecheap: '<b>Share access on Namecheap:</b><ol><li>Sign in at <a href="https://namecheap.com" target="_blank" rel="noopener">namecheap.com</a> and open <b>Domain List</b>.</li><li>Click <b>Manage</b> next to your domain → <b>Sharing &amp; Transfer</b>.</li><li>Under <b>Share Access</b>, add ' + DELEGATE_EMAIL + ' and confirm.</li></ol>',
+    cloudflare: '<b>Invite a member on Cloudflare:</b><ol><li>Sign in at <a href="https://dash.cloudflare.com" target="_blank" rel="noopener">dash.cloudflare.com</a>.</li><li>Go to <b>Manage Account</b> → <b>Members</b>.</li><li>Click <b>Invite</b>, enter ' + DELEGATE_EMAIL + ', and give it the <b>DNS</b> (or Administrator) role.</li><li>Send the invite.</li></ol>',
+    squarespace: '<b>Invite on Squarespace:</b><ol><li>Sign in at <a href="https://account.squarespace.com" target="_blank" rel="noopener">account.squarespace.com</a>.</li><li>Open <b>Domains</b> → your domain → <b>Permissions</b> (or Settings → Permissions on a site).</li><li>Click <b>Invite</b>, enter ' + DELEGATE_EMAIL + ', and grant <b>Domain Manager</b> (or Administrator).</li><li>Send the invite.</li></ol>',
+    wix: '<b>Invite a collaborator on Wix:</b><ol><li>Sign in at <a href="https://wix.com" target="_blank" rel="noopener">wix.com</a> and open your site’s dashboard.</li><li>Go to <b>Settings</b> → <b>Roles &amp; Permissions</b>.</li><li>Click <b>Invite Collaborator</b>, enter ' + DELEGATE_EMAIL + ', and choose <b>Domain Manager</b>.</li><li>Send the invite.</li></ol>',
+    hostinger: '<b>Share access on Hostinger:</b><ol><li>Sign in at <a href="https://hpanel.hostinger.com" target="_blank" rel="noopener">hpanel.hostinger.com</a>.</li><li>Open your profile → <b>Account Sharing</b>.</li><li>Click <b>Add account</b>, enter ' + DELEGATE_EMAIL + ', and grant access to <b>Domains</b>.</li><li>Send the invite.</li></ol>',
+    other: '<b>Delegate access at your domain carrier:</b><ol><li>Sign in to your domain provider’s dashboard.</li><li>Look for <b>Delegate Access</b>, <b>Share Access</b>, <b>Members</b>, or <b>Users</b> in account settings.</li><li>Invite ' + DELEGATE_EMAIL + ' with DNS / domain management access.</li></ol>If you can’t find it, sign up anyway and we’ll walk you through it by email.',
+  };
+
   // --- Seat meter ---
   function renderMeter(confirmed) {
     $('meterFill').style.width = (confirmed / CAP * 100) + '%';
@@ -273,7 +415,7 @@
   }
   function showFull() {
     form.style.display = 'none';
-    errorMsg.style.display = 'none';
+    errorMsg.classList.remove('show');
     $('successState').style.display = 'none';
     $('fullState').style.display = 'block';
   }
@@ -293,36 +435,49 @@
   loadSeats();
 
   // --- Conditional sections ---
-  $('emailPlatform').addEventListener('change', () => {
-    const v = $('emailPlatform').value;
+  function selectedPlatform() {
+    const el = document.querySelector('input[name="emailPlatform"]:checked');
+    return el ? el.value : '';
+  }
+  $('platformGrid').addEventListener('change', () => {
+    const v = selectedPlatform();
     const custom = v === 'custom-domain';
     $('customDomainSection').classList.toggle('show', custom);
     $('appPasswordSection').classList.toggle('show', !!v && !custom);
     if (v && !custom) $('pwInstructions').innerHTML = PW_INSTRUCTIONS[v] || PW_INSTRUCTIONS.other;
+    if (custom) prefillDomain();
+  });
+
+  $('domainProvider').addEventListener('change', () => {
+    const p = $('domainProvider').value;
+    $('delegationInstructions').classList.toggle('show', !!p);
+    $('delegationCheckWrap').classList.toggle('show', !!p);
+    if (p) $('delegationInstructions').innerHTML = DELEGATION_INSTRUCTIONS[p] || DELEGATION_INSTRUCTIONS.other;
   });
 
   function cleanDomain(raw) {
     return raw.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/.*$/, '');
   }
-  $('domain').addEventListener('input', () => {
+  function updateSubdomainPreview() {
     const d = cleanDomain($('domain').value);
     $('subdomainPreview').textContent = 'ichat.' + (d || 'yourdomain.com');
-  });
+  }
+  $('domain').addEventListener('input', updateSubdomainPreview);
 
-  // Prefill domain from the sending email when it's a custom-domain setup
-  $('mainEmail').addEventListener('change', () => {
-    if ($('emailPlatform').value === 'custom-domain' && !$('domain').value) {
+  function prefillDomain() {
+    if (!$('domain').value) {
       const at = $('mainEmail').value.indexOf('@');
-      if (at > 0) {
-        $('domain').value = cleanDomain($('mainEmail').value.slice(at + 1));
-        $('domain').dispatchEvent(new Event('input'));
-      }
+      if (at > 0) $('domain').value = cleanDomain($('mainEmail').value.slice(at + 1));
     }
+    updateSubdomainPreview();
+  }
+  $('mainEmail').addEventListener('change', () => {
+    if (selectedPlatform() === 'custom-domain') prefillDomain();
   });
 
   function showError(text) {
     errorMsg.textContent = text;
-    errorMsg.style.display = 'block';
+    errorMsg.classList.add('show');
     errorMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
@@ -330,9 +485,9 @@
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    errorMsg.style.display = 'none';
+    errorMsg.classList.remove('show');
 
-    const platform = $('emailPlatform').value;
+    const platform = selectedPlatform();
     const custom = platform === 'custom-domain';
     const payload = {
       planConfirmed: $('planConfirmed').checked,
@@ -343,7 +498,7 @@
       mainEmail: $('mainEmail').value.trim(),
       emailPlatform: platform,
       domain: custom ? cleanDomain($('domain').value) : '',
-      domainProvider: custom ? $('domainProvider').value.trim() : '',
+      domainProvider: custom ? $('domainProvider').value : '',
       delegationOk: custom ? $('delegationOk').checked : false,
       appPassword: custom ? '' : $('appPassword').value,
     };
@@ -357,8 +512,8 @@
     if (!platform) return showError('Please select your email platform.');
     if (custom) {
       if (!payload.domain || !payload.domain.includes('.')) return showError('Please enter your custom domain (e.g. yourcompany.com).');
-      if (payload.domainProvider.length < 2) return showError('Please tell us where your domain is managed (e.g. GoDaddy, Cloudflare).');
-      if (!payload.delegationOk) return showError('Please agree to delegate domain access so we can set up your ichat subdomain.');
+      if (!payload.domainProvider) return showError('Please select your domain carrier.');
+      if (!payload.delegationOk) return showError('Please delegate access at your domain carrier using the steps shown, then check the box.');
     } else if (payload.appPassword.length < 8) {
       return showError('Please enter the app password from your email platform (see the steps above).');
     }
@@ -379,7 +534,7 @@
         form.style.display = 'none';
         $('seatNumber').textContent = j.seatNumber;
         $('successNext').textContent = custom
-          ? 'We’ll reach out with the steps to delegate access at ' + payload.domainProvider + ' and set up ichat.' + payload.domain + '.'
+          ? 'We’ll confirm your delegation and set up ichat.' + payload.domain + ', then email you when your beta access is ready.'
           : 'We’ll email you when your iChat beta access is ready.';
         $('successState').style.display = 'block';
         return;

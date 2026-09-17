@@ -398,8 +398,8 @@ form .section-title:first-child { margin-top: 0; }
   const errorMsg = $('errorMsg');
 
   const PW_INSTRUCTIONS = {
-    gmail: '<b>Get your Gmail app password:</b><ol><li>Go to <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener">myaccount.google.com/apppasswords</a> (sign in if asked).</li><li>2-Step Verification must be on — enable it under Security if it isn’t.</li><li>Enter a name like <b>iChat</b> and click <b>Create</b>.</li><li>Copy the 16-character password and paste it below.</li></ol>',
-    yahoo: '<b>Get your Yahoo app password:</b><ol><li>Go to <a href="https://login.yahoo.com/myaccount/security/" target="_blank" rel="noopener">Yahoo Account Security</a>.</li><li>Select <b>Generate app password</b> (or "Manage app passwords").</li><li>Choose <b>Other app</b>, name it <b>iChat</b>, and click Generate.</li><li>Copy the password and paste it below.</li></ol>',
+    gmail: '<b>Gmail requires an app password</b> — your regular Gmail password won’t work. An app password is a 16-character code that lets iChat send email on your behalf:<ol><li>Go to your <a href="https://myaccount.google.com/security" target="_blank" rel="noopener">Google Account Security page</a> and scroll to <b>How you sign in to Google</b>. <b>2-Step Verification</b> must be turned on — if it isn’t, enable it first, then continue.</li><li>Open <b>2-Step Verification</b>, scroll all the way to the bottom, and select <b>App passwords</b>.</li><li>In the App name field, enter <b>iChat</b> and click <b>Create</b>.</li><li>Copy the 16-character password immediately (without extra spaces) — you won’t be able to view it again after closing the window.</li><li>Paste it below, and store it somewhere secure like a password manager.</li></ol>Using Google Workspace? If <b>App passwords</b> doesn’t appear even with 2-Step Verification on, your Workspace admin may have restricted it — ask them to enable it.',
+    yahoo: '<b>Yahoo just needs your email password</b> — no app password required. Enter the password you use to sign in to Yahoo Mail below.',
     sendgrid: '<b>Get your SendGrid credentials:</b><ol><li>Sign in at <a href="https://app.sendgrid.com" target="_blank" rel="noopener">app.sendgrid.com</a>.</li><li>Go to <b>Settings</b> → <b>API Keys</b> → <b>Create API Key</b> (Full Access, or Restricted with <b>Mail Send</b>).</li><li>Copy the key (starts with <b>SG.</b>) — that’s your password below.</li><li>Username: enter <b>apikey</b> unless your team uses a specific SMTP username.</li></ol>',
     other: '<b>Find your provider’s SMTP settings:</b><ol><li>Search your email provider’s help docs or account settings for <b>SMTP settings</b>.</li><li>You’ll need the <b>SMTP server</b> (e.g. smtp.yourprovider.com) and <b>port</b> — usually <b>587</b>, sometimes 465.</li><li>Username is typically your full email address unless your provider says otherwise.</li><li>Password: your email password — some providers require an <b>app password</b> from their security settings instead.</li></ol>',
   };
@@ -407,7 +407,7 @@ form .section-title:first-child { margin-top: 0; }
   // Which extra fields each platform needs, mirroring the iChat setup screens.
   const PLATFORM_FIELDS = {
     gmail:    { username: false, smtp: false, pwLabel: 'App Password' },
-    yahoo:    { username: false, smtp: false, pwLabel: 'App Password' },
+    yahoo:    { username: false, smtp: false, pwLabel: 'Email Password' },
     sendgrid: { username: true,  smtp: false, pwLabel: 'Password (API Key)', usernameHint: 'Usually the literal word “apikey”.', usernameRequired: false },
     other:    { username: true,  smtp: true,  pwLabel: 'Password', usernameHint: 'Usually your full email address.', usernameRequired: false },
   };

@@ -21,6 +21,13 @@ const PROVIDER_LABELS = {
   other: 'Other',
 };
 
+function pwLabel(platform) {
+  if (platform === 'sendgrid') return 'Password (API Key)';
+  if (platform === 'yahoo') return 'Email Password';
+  if (platform === 'gmail') return 'App Password';
+  return 'Password';
+}
+
 // Mirrors the texting application's PDF layout (index.html generateApplicationPDF),
 // generated server-side since the app password never touches the success page.
 function generateSignupPDF(s) {
@@ -106,7 +113,7 @@ function generateSignupPDF(s) {
     doc.text('SENSITIVE — DELETE THIS PDF AFTER SETUP', MARGIN, y);
     doc.setTextColor(26, 24, 48);
     y += 6;
-    row(s.emailPlatform === 'sendgrid' ? 'Password (API Key)' : s.emailPlatform === 'other' ? 'Password' : 'App Password', s.appPassword);
+    row(pwLabel(s.emailPlatform), s.appPassword);
   }
 
   const pageH = 279.4;
@@ -129,7 +136,6 @@ function buildEmailHtml(s) {
     `<div class="row"><span class="label">${label}</span><span class="value">${value || '<span class="empty">Not provided</span>'}</span></div>`;
 
   const isOther = s.emailPlatform === 'other';
-  const pwLabel = s.emailPlatform === 'sendgrid' ? 'Password (API Key)' : isOther ? 'Password' : 'App Password';
   const setupRows = s.usesCustomDomain
     ? rowHtml('Domain', escapeHtml(s.domain)) +
       rowHtml('iChat Subdomain', escapeHtml('ichat.' + s.domain)) +
@@ -143,7 +149,7 @@ function buildEmailHtml(s) {
       (s.smtpUsername ? rowHtml('Username', escapeHtml(s.smtpUsername)) : '') +
       `<div class="pw-block">
          <p class="pw-warn">SENSITIVE — needed to connect their inbox. Delete this email after setup.</p>
-         ${rowHtml(pwLabel, `<code>${escapeHtml(s.appPassword)}</code>`)}
+         ${rowHtml(pwLabel(s.emailPlatform), `<code>${escapeHtml(s.appPassword)}</code>`)}
        </div>`;
 
   return `

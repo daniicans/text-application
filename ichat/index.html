@@ -311,8 +311,7 @@ form .section-title:first-child { margin-top: 0; }
           <div class="radio-grid" id="platformGrid">
             <label class="tg-rad"><input type="radio" name="emailPlatform" value="gmail"><span class="tg-rad-dot"></span>Gmail</label>
             <label class="tg-rad"><input type="radio" name="emailPlatform" value="yahoo"><span class="tg-rad-dot"></span>Yahoo Mail</label>
-            <label class="tg-rad"><input type="radio" name="emailPlatform" value="outlook"><span class="tg-rad-dot"></span>Outlook / Hotmail</label>
-            <label class="tg-rad"><input type="radio" name="emailPlatform" value="icloud"><span class="tg-rad-dot"></span>iCloud Mail</label>
+            <label class="tg-rad"><input type="radio" name="emailPlatform" value="sendgrid"><span class="tg-rad-dot"></span>SendGrid</label>
             <label class="tg-rad"><input type="radio" name="emailPlatform" value="custom-domain"><span class="tg-rad-dot"></span>Custom domain email</label>
             <label class="tg-rad"><input type="radio" name="emailPlatform" value="other"><span class="tg-rad-dot"></span>Other</label>
           </div>
@@ -347,11 +346,28 @@ form .section-title:first-child { margin-top: 0; }
           </label>
         </div>
 
-        <!-- App password path -->
+        <!-- SMTP / app password path -->
         <div class="conditional" id="appPasswordSection">
           <div class="steps" id="pwInstructions"></div>
+          <div class="field conditional" id="providerNameField">
+            <label class="tg-lbl" for="providerName">Provider Name <span class="req">*</span></label>
+            <input class="tg-inp" type="text" id="providerName" placeholder="e.g. Zoho, Fastmail, GoDaddy Email" autocomplete="off">
+          </div>
+          <div class="field conditional" id="smtpServerField">
+            <label class="tg-lbl" for="smtpServer">SMTP Server <span class="req">*</span></label>
+            <input class="tg-inp" type="text" id="smtpServer" placeholder="e.g. smtp.yourprovider.com" autocomplete="off">
+          </div>
+          <div class="field conditional" id="smtpPortField">
+            <label class="tg-lbl" for="smtpPort">SMTP Port Number <span class="req">*</span></label>
+            <input class="tg-inp" type="text" id="smtpPort" inputmode="numeric" placeholder="587" autocomplete="off">
+          </div>
+          <div class="field conditional" id="smtpUsernameField">
+            <label class="tg-lbl" for="smtpUsername">Username <span id="usernameReq"></span></label>
+            <input class="tg-inp" type="text" id="smtpUsername" autocomplete="off">
+            <p class="hint" id="usernameHint"></p>
+          </div>
           <div class="field">
-            <label class="tg-lbl" for="appPassword">App Password <span class="req">*</span></label>
+            <label class="tg-lbl" for="appPassword"><span id="pwLabel">App Password</span> <span class="req">*</span></label>
             <input class="tg-inp" type="password" id="appPassword" autocomplete="off">
             <p class="hint">Encrypted before it's stored, and only used to connect your inbox to iChat.</p>
           </div>
@@ -384,9 +400,16 @@ form .section-title:first-child { margin-top: 0; }
   const PW_INSTRUCTIONS = {
     gmail: '<b>Get your Gmail app password:</b><ol><li>Go to <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener">myaccount.google.com/apppasswords</a> (sign in if asked).</li><li>2-Step Verification must be on — enable it under Security if it isn’t.</li><li>Enter a name like <b>iChat</b> and click <b>Create</b>.</li><li>Copy the 16-character password and paste it below.</li></ol>',
     yahoo: '<b>Get your Yahoo app password:</b><ol><li>Go to <a href="https://login.yahoo.com/myaccount/security/" target="_blank" rel="noopener">Yahoo Account Security</a>.</li><li>Select <b>Generate app password</b> (or "Manage app passwords").</li><li>Choose <b>Other app</b>, name it <b>iChat</b>, and click Generate.</li><li>Copy the password and paste it below.</li></ol>',
-    outlook: '<b>Get your Outlook/Hotmail app password:</b><ol><li>Go to <a href="https://account.live.com/proofs/manage/additional" target="_blank" rel="noopener">Microsoft Additional Security Options</a>.</li><li>Two-step verification must be on — enable it there if it isn’t.</li><li>Under <b>App passwords</b>, select <b>Create a new app password</b>.</li><li>Copy the password and paste it below.</li></ol>',
-    icloud: '<b>Get your iCloud app-specific password:</b><ol><li>Go to <a href="https://account.apple.com" target="_blank" rel="noopener">account.apple.com</a> and sign in.</li><li>Open <b>Sign-In and Security</b> → <b>App-Specific Passwords</b>.</li><li>Click <b>+</b>, name it <b>iChat</b>, and generate.</li><li>Copy the password and paste it below.</li></ol>',
-    other: '<b>Get an app password from your email provider:</b><ol><li>Sign in to your email provider’s account security settings.</li><li>Look for <b>App passwords</b> or <b>App-specific passwords</b> (you may need two-step verification on).</li><li>Generate one named <b>iChat</b> and paste it below.</li></ol>',
+    sendgrid: '<b>Get your SendGrid credentials:</b><ol><li>Sign in at <a href="https://app.sendgrid.com" target="_blank" rel="noopener">app.sendgrid.com</a>.</li><li>Go to <b>Settings</b> → <b>API Keys</b> → <b>Create API Key</b> (Full Access, or Restricted with <b>Mail Send</b>).</li><li>Copy the key (starts with <b>SG.</b>) — that’s your password below.</li><li>Username: enter <b>apikey</b> unless your team uses a specific SMTP username.</li></ol>',
+    other: '<b>Find your provider’s SMTP settings:</b><ol><li>Search your email provider’s help docs or account settings for <b>SMTP settings</b>.</li><li>You’ll need the <b>SMTP server</b> (e.g. smtp.yourprovider.com) and <b>port</b> — usually <b>587</b>, sometimes 465.</li><li>Username is typically your full email address unless your provider says otherwise.</li><li>Password: your email password — some providers require an <b>app password</b> from their security settings instead.</li></ol>',
+  };
+
+  // Which extra fields each platform needs, mirroring the iChat setup screens.
+  const PLATFORM_FIELDS = {
+    gmail:    { username: false, smtp: false, pwLabel: 'App Password' },
+    yahoo:    { username: false, smtp: false, pwLabel: 'App Password' },
+    sendgrid: { username: true,  smtp: false, pwLabel: 'Password (API Key)', usernameHint: 'Usually the literal word “apikey”.', usernameRequired: false },
+    other:    { username: true,  smtp: true,  pwLabel: 'Password', usernameHint: 'Usually your full email address.', usernameRequired: false },
   };
 
   const DELEGATE_EMAIL = '<span class="copyable">webdev@icans.ai</span>';
@@ -438,7 +461,16 @@ form .section-title:first-child { margin-top: 0; }
     const custom = v === 'custom-domain';
     $('customDomainSection').classList.toggle('show', custom);
     $('appPasswordSection').classList.toggle('show', !!v && !custom);
-    if (v && !custom) $('pwInstructions').innerHTML = PW_INSTRUCTIONS[v] || PW_INSTRUCTIONS.other;
+    if (v && !custom) {
+      $('pwInstructions').innerHTML = PW_INSTRUCTIONS[v] || PW_INSTRUCTIONS.other;
+      const f = PLATFORM_FIELDS[v] || PLATFORM_FIELDS.other;
+      $('providerNameField').classList.toggle('show', f.smtp);
+      $('smtpServerField').classList.toggle('show', f.smtp);
+      $('smtpPortField').classList.toggle('show', f.smtp);
+      $('smtpUsernameField').classList.toggle('show', f.username);
+      $('usernameHint').textContent = f.usernameHint || '';
+      $('pwLabel').textContent = f.pwLabel;
+    }
     if (custom) prefillDomain();
   });
 
@@ -483,6 +515,7 @@ form .section-title:first-child { margin-top: 0; }
 
     const platform = selectedPlatform();
     const custom = platform === 'custom-domain';
+    const f = custom ? null : (PLATFORM_FIELDS[platform] || PLATFORM_FIELDS.other);
     const payload = {
       planConfirmed: $('planConfirmed').checked,
       fullName: $('fullName').value.trim(),
@@ -494,6 +527,10 @@ form .section-title:first-child { margin-top: 0; }
       domainProvider: custom ? $('domainProvider').value : '',
       delegationOk: custom ? $('delegationOk').checked : false,
       appPassword: custom ? '' : $('appPassword').value,
+      smtpUsername: f && f.username ? $('smtpUsername').value.trim() : '',
+      providerName: f && f.smtp ? $('providerName').value.trim() : '',
+      smtpServer: f && f.smtp ? $('smtpServer').value.trim() : '',
+      smtpPort: f && f.smtp ? $('smtpPort').value.trim() : '',
     };
 
     if (!payload.planConfirmed) return showError('The iChat beta is only available to Plus plan subscribers — please confirm your plan.');
@@ -506,8 +543,14 @@ form .section-title:first-child { margin-top: 0; }
       if (!payload.domain || !payload.domain.includes('.')) return showError('Please enter your custom domain (e.g. yourcompany.com).');
       if (!payload.domainProvider) return showError('Please select your domain carrier.');
       if (!payload.delegationOk) return showError('Please delegate access at your domain carrier using the steps shown, then check the box.');
-    } else if (payload.appPassword.length < 8) {
-      return showError('Please enter the app password from your email platform (see the steps above).');
+    } else {
+      if (f.smtp) {
+        if (payload.providerName.length < 2) return showError('Please enter your email provider’s name.');
+        if (!payload.smtpServer.includes('.')) return showError('Please enter your SMTP server (e.g. smtp.yourprovider.com).');
+        const port = parseInt(payload.smtpPort, 10);
+        if (!port || port < 1 || port > 65535) return showError('Please enter your SMTP port number (usually 587).');
+      }
+      if (payload.appPassword.length < 8) return showError('Please enter the password from the steps above.');
     }
 
     submitBtn.disabled = true;

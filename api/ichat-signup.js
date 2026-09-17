@@ -6,7 +6,7 @@ const SEAT_CAP = 20;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const DOMAIN_RE = /^(?!-)[a-z0-9-]{1,63}(?<!-)(\.(?!-)[a-z0-9-]{1,63}(?<!-))+$/i;
 // Platforms that connect via an app password; custom-domain connects via DNS delegation instead.
-const APP_PASSWORD_PLATFORMS = ['gmail', 'yahoo', 'outlook', 'icloud', 'other'];
+const APP_PASSWORD_PLATFORMS = ['gmail', 'yahoo', 'sendgrid', 'other'];
 const PLATFORMS = [...APP_PASSWORD_PLATFORMS, 'custom-domain'];
 const DOMAIN_PROVIDERS = ['godaddy', 'namecheap', 'cloudflare', 'squarespace', 'wix', 'hostinger', 'other'];
 
@@ -47,6 +47,10 @@ module.exports = async function handler(req, res) {
   const delegationOk = b.delegationOk === true;
   const planConfirmed = b.planConfirmed === true;
   const appPassword = String(b.appPassword || '');
+  const smtpUsername = String(b.smtpUsername || '').trim();
+  const providerName = String(b.providerName || '').trim();
+  const smtpServer = String(b.smtpServer || '').trim().toLowerCase();
+  const smtpPort = String(b.smtpPort || '').trim();
 
   if (!planConfirmed) {
     return res.status(400).json({ error: 'The iChat beta is only available to Plus plan subscribers' });
@@ -81,8 +85,25 @@ module.exports = async function handler(req, res) {
     if (!delegationOk) {
       return res.status(400).json({ error: 'Please delegate access to webdev@icans.ai at your domain carrier, then check the box' });
     }
-  } else if (appPassword.length < 8 || appPassword.length > 256) {
-    return res.status(400).json({ error: 'Please enter the app password for your email platform' });
+  } else {
+    if (emailPlatform === 'other') {
+      if (providerName.length < 2 || providerName.length > 120) {
+        return res.status(400).json({ error: 'Please enter your email provider’s name' });
+      }
+      if (!smtpServer.includes('.') || smtpServer.length > 253) {
+        return res.status(400).json({ error: 'Please enter your SMTP server (e.g. smtp.yourprovider.com)' });
+      }
+      const port = parseInt(smtpPort, 10);
+      if (!port || port < 1 || port > 65535) {
+        return res.status(400).json({ error: 'Please enter your SMTP port number (usually 587)' });
+      }
+    }
+    if (smtpUsername.length > 254) {
+      return res.status(400).json({ error: 'Please enter a valid username' });
+    }
+    if (appPassword.length < 8 || appPassword.length > 256) {
+      return res.status(400).json({ error: 'Please enter the password for your email platform' });
+    }
   }
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
@@ -102,6 +123,10 @@ module.exports = async function handler(req, res) {
       domain_provider: usesCustomDomain ? domainProvider : '',
       delegation_ok: usesCustomDomain ? delegationOk : false,
       plan_confirmed: planConfirmed,
+      smtp_username: usesCustomDomain ? '' : smtpUsername,
+      smtp_provider_name: emailPlatform === 'other' ? providerName : '',
+      smtp_server: emailPlatform === 'other' ? smtpServer : '',
+      smtp_port: emailPlatform === 'other' ? smtpPort : '',
     },
   });
 
@@ -153,6 +178,10 @@ module.exports = async function handler(req, res) {
     delegationOk: usesCustomDomain ? delegationOk : false,
     planConfirmed,
     appPassword: usesCustomDomain ? '' : appPassword,
+    smtpUsername: usesCustomDomain ? '' : smtpUsername,
+    providerName: emailPlatform === 'other' ? providerName : '',
+    smtpServer: emailPlatform === 'other' ? smtpServer : '',
+    smtpPort: emailPlatform === 'other' ? smtpPort : '',
     });
   } catch (e) {
     notify = { crashed: (e && e.stack) || String(e) };

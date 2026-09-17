@@ -4,6 +4,7 @@ const { jsPDF } = require('jspdf');
 const PLATFORM_LABELS = {
   gmail: 'Gmail',
   yahoo: 'Yahoo Mail',
+  sendgrid: 'SendGrid',
   outlook: 'Outlook / Hotmail',
   icloud: 'iCloud Mail',
   'custom-domain': 'Custom domain email',
@@ -95,13 +96,17 @@ function generateSignupPDF(s) {
     row('Delegated to webdev@icans.ai', s.delegationOk ? 'Yes' : 'No');
   } else {
     divider();
+    row('Provider Name', s.providerName);
+    row('SMTP Server', s.smtpServer);
+    row('SMTP Port', s.smtpPort);
+    row('Username', s.smtpUsername);
     doc.setFontSize(8);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(199, 90, 14);
     doc.text('SENSITIVE — DELETE THIS PDF AFTER SETUP', MARGIN, y);
     doc.setTextColor(26, 24, 48);
     y += 6;
-    row('App Password', s.appPassword);
+    row(s.emailPlatform === 'sendgrid' ? 'Password (API Key)' : s.emailPlatform === 'other' ? 'Password' : 'App Password', s.appPassword);
   }
 
   const pageH = 279.4;
@@ -115,18 +120,30 @@ function generateSignupPDF(s) {
   return doc.output('datauristring').split(',')[1];
 }
 
+function escapeHtml(v) {
+  return String(v || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 function buildEmailHtml(s) {
   const rowHtml = (label, value) =>
     `<div class="row"><span class="label">${label}</span><span class="value">${value || '<span class="empty">Not provided</span>'}</span></div>`;
 
+  const isOther = s.emailPlatform === 'other';
+  const pwLabel = s.emailPlatform === 'sendgrid' ? 'Password (API Key)' : isOther ? 'Password' : 'App Password';
   const setupRows = s.usesCustomDomain
-    ? rowHtml('Domain', s.domain) +
-      rowHtml('iChat Subdomain', 'ichat.' + s.domain) +
-      rowHtml('Domain Carrier', PROVIDER_LABELS[s.domainProvider] || s.domainProvider) +
+    ? rowHtml('Domain', escapeHtml(s.domain)) +
+      rowHtml('iChat Subdomain', escapeHtml('ichat.' + s.domain)) +
+      rowHtml('Domain Carrier', escapeHtml(PROVIDER_LABELS[s.domainProvider] || s.domainProvider)) +
       rowHtml('Delegated to webdev@icans.ai', s.delegationOk ? 'Yes' : 'No')
-    : `<div class="pw-block">
+    : (isOther
+        ? rowHtml('Provider Name', escapeHtml(s.providerName)) +
+          rowHtml('SMTP Server', escapeHtml(s.smtpServer)) +
+          rowHtml('SMTP Port', escapeHtml(s.smtpPort))
+        : '') +
+      (s.smtpUsername ? rowHtml('Username', escapeHtml(s.smtpUsername)) : '') +
+      `<div class="pw-block">
          <p class="pw-warn">SENSITIVE — needed to connect their inbox. Delete this email after setup.</p>
-         ${rowHtml('App Password', `<code>${s.appPassword}</code>`)}
+         ${rowHtml(pwLabel, `<code>${escapeHtml(s.appPassword)}</code>`)}
        </div>`;
 
   return `
@@ -231,7 +248,11 @@ async function notifySignup(s) {
         `Platform: ${PLATFORM_LABELS[s.emailPlatform] || s.emailPlatform}`,
         s.usesCustomDomain
           ? `Domain: ${s.domain} (ichat.${s.domain}) · Carrier: ${PROVIDER_LABELS[s.domainProvider] || s.domainProvider} · Delegated: ${s.delegationOk ? 'Yes' : 'No'}`
-          : `App password (sensitive, delete after setup): ${s.appPassword}`,
+          : [
+              s.providerName ? `Provider: ${s.providerName} · SMTP: ${s.smtpServer}:${s.smtpPort}` : '',
+              s.smtpUsername ? `Username: ${s.smtpUsername}` : '',
+              `Password (sensitive, delete after setup): ${s.appPassword}`,
+            ].filter(Boolean).join('\n'),
       ].join('\n'),
       attachments: pdfBase64
         ? [{
@@ -270,6 +291,10 @@ async function notifySignup(s) {
           domainProvider: s.domainProvider || null,
           delegationOk: s.delegationOk,
           planConfirmed: s.planConfirmed,
+          smtpUsername: s.smtpUsername || null,
+          smtpProviderName: s.providerName || null,
+          smtpServer: s.smtpServer || null,
+          smtpPort: s.smtpPort || null,
         },
         pdfBase64,
       }),

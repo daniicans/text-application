@@ -18,12 +18,16 @@ create table if not exists public.ichat_beta_signups (
   email              text not null,           -- account/contact email
   phone              text not null,
   main_email         text not null,           -- the ONE email iChat sends/receives from
-  email_platform     text not null,           -- gmail | yahoo | outlook | icloud | custom-domain | other
+  email_platform     text not null,           -- gmail | yahoo | sendgrid | custom-domain | other
   uses_custom_domain boolean not null default false,
   domain             text,                    -- e.g. acme.com (custom-domain only)
   domain_provider    text,                    -- e.g. GoDaddy, Cloudflare (custom-domain only)
-  delegation_ok      boolean not null default false,  -- agreed to delegate domain access
+  delegation_ok      boolean not null default false,  -- delegated domain access to webdev@icans.ai
   plan_confirmed     boolean not null default false,  -- attested they're on the Plus plan
+  smtp_username      text,                    -- SendGrid/Other (usually "apikey" or the email)
+  smtp_provider_name text,                    -- Other only
+  smtp_server        text,                    -- Other only
+  smtp_port          text,                    -- Other only
   seat_number        integer not null check (seat_number >= 1),
   status             text not null default 'confirmed' check (status in ('confirmed', 'cancelled'))
 );
@@ -94,7 +98,8 @@ begin
   insert into ichat_beta_signups (
     full_name, company_name, email, phone, main_email, email_platform,
     uses_custom_domain, domain, domain_provider, delegation_ok,
-    plan_confirmed, seat_number
+    plan_confirmed, smtp_username, smtp_provider_name, smtp_server, smtp_port,
+    seat_number
   )
   values (
     p_data->>'full_name',
@@ -108,6 +113,10 @@ begin
     nullif(p_data->>'domain_provider', ''),
     coalesce((p_data->>'delegation_ok')::boolean, false),
     coalesce((p_data->>'plan_confirmed')::boolean, false),
+    nullif(p_data->>'smtp_username', ''),
+    nullif(p_data->>'smtp_provider_name', ''),
+    nullif(p_data->>'smtp_server', ''),
+    nullif(p_data->>'smtp_port', ''),
     v_seat
   )
   returning id into v_id;

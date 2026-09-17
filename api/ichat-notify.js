@@ -189,11 +189,14 @@ function buildEmailHtml(s) {
 
 // Sends the notification email (with PDF) and pushes the signup to iCore.
 // Never throws — a notification failure must not cost the customer their seat.
+// Returns per-step error strings for observability.
 async function notifySignup(s) {
+  const result = { pdf: null, email: null, icore: null };
   let pdfBase64 = null;
   try {
     pdfBase64 = generateSignupPDF(s);
   } catch (e) {
+    result.pdf = e.message;
     console.error('ichat PDF generation failed:', e.message);
   }
 
@@ -206,6 +209,9 @@ async function notifySignup(s) {
         user: process.env.GMAIL_USER,
         pass: process.env.GMAIL_APP_PASSWORD,
       },
+      connectionTimeout: 8000,
+      greetingTimeout: 8000,
+      socketTimeout: 10000,
     });
 
     const safeName = (s.companyName || 'signup').replace(/[^a-z0-9]/gi, '-').replace(/-+/g, '-').slice(0, 60);
@@ -236,6 +242,7 @@ async function notifySignup(s) {
         : [],
     });
   } catch (e) {
+    result.email = e.message;
     console.error('ichat signup email failed:', e.message);
   }
 
@@ -244,9 +251,10 @@ async function notifySignup(s) {
     // in the notification email/PDF and encrypted in Supabase.
     await fetch('https://icore.icans.ai/api/webhooks/ichat-beta', {
       method: 'POST',
+      signal: AbortSignal.timeout(8000),
       headers: {
         'Content-Type': 'application/json',
-        'x-webhook-secret': process.env.ICORE_WEBHOOK_SECRET,
+        'x-webhook-secret': process.env.ICORE_WEBHOOK_SECRET || '',
       },
       body: JSON.stringify({
         data: {
@@ -267,8 +275,11 @@ async function notifySignup(s) {
       }),
     });
   } catch (e) {
+    result.icore = e.message;
     console.error('iCore webhook failed:', e.message);
   }
+
+  return result;
 }
 
 module.exports = { notifySignup };

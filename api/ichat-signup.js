@@ -138,7 +138,9 @@ module.exports = async function handler(req, res) {
 
   // Email + PDF to onboarding and push to iCore, same as the texting
   // application. Never fails the signup — the seat is already reserved.
-  await notifySignup({
+  let notify = null;
+  try {
+    notify = await notifySignup({
     seatNumber: seat.seat_number,
     fullName: name,
     companyName,
@@ -151,12 +153,18 @@ module.exports = async function handler(req, res) {
     delegationOk: usesCustomDomain ? delegationOk : false,
     planConfirmed,
     appPassword: usesCustomDomain ? '' : pw,
-  });
+    });
+  } catch (e) {
+    notify = { crashed: (e && e.stack) || String(e) };
+    console.error('notifySignup crashed:', notify.crashed);
+  }
 
   return res.status(200).json({
     ok: true,
     seatNumber: seat.seat_number,
     seatsRemaining: seat.seats_remaining,
     cap: SEAT_CAP,
+    // TEMP DEBUG — remove once the notification pipeline is verified.
+    debugNotify: notify,
   });
 };

@@ -249,7 +249,7 @@ async function notifySignup(s) {
   try {
     // App password intentionally excluded from the iCore payload — it lives
     // in the notification email/PDF and encrypted in Supabase.
-    await fetch('https://icore.icans.ai/api/webhooks/ichat-beta', {
+    const icoreRes = await fetch('https://icore.icans.ai/api/webhooks/ichat-beta', {
       method: 'POST',
       signal: AbortSignal.timeout(8000),
       headers: {
@@ -274,6 +274,10 @@ async function notifySignup(s) {
         pdfBase64,
       }),
     });
+    if (!icoreRes.ok) {
+      result.icore = 'HTTP ' + icoreRes.status;
+      console.error('iCore webhook returned', icoreRes.status);
+    }
   } catch (e) {
     result.icore = e.message;
     console.error('iCore webhook failed:', e.message);

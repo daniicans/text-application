@@ -164,7 +164,5 @@ module.exports = async function handler(req, res) {
     seatNumber: seat.seat_number,
     seatsRemaining: seat.seats_remaining,
     cap: SEAT_CAP,
-    // TEMP DEBUG — remove once the notification pipeline is verified.
-    debugNotify: notify,
   });
 };

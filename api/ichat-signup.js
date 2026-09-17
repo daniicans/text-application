@@ -59,7 +59,7 @@ module.exports = async function handler(req, res) {
   if (!EMAIL_RE.test(email) || email.length > 254) {
     return res.status(400).json({ error: 'Please enter a valid account email address' });
   }
-  if (phone.replace(/\D/g, '').length < 7 || phone.length > 30) {
+  if (phone.length > 30) {
     return res.status(400).json({ error: 'Please enter a valid phone number' });
   }
   if (!EMAIL_RE.test(mainEmail) || mainEmail.length > 254) {

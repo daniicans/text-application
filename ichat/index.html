@@ -300,12 +300,6 @@ form .section-title:first-child { margin-top: 0; }
           <input class="tg-inp" type="email" id="email" autocomplete="email" required>
           <p class="hint">The email on your iCANS account — we use this to verify your Plus plan.</p>
         </div>
-        <div class="field">
-          <label class="tg-lbl" for="phone">Phone <span class="req">*</span></label>
-          <input class="tg-inp" type="tel" id="phone" autocomplete="tel" required>
-          <p class="hint">iChat includes two-way SMS, so we need a working number.</p>
-        </div>
-
         <p class="section-title">Your Email Setup</p>
         <div class="field">
           <label class="tg-lbl" for="mainEmail">Email iChat Should Send &amp; Receive From <span class="req">*</span></label>
@@ -494,7 +488,6 @@ form .section-title:first-child { margin-top: 0; }
       fullName: $('fullName').value.trim(),
       companyName: $('companyName').value.trim(),
       email: $('email').value.trim(),
-      phone: $('phone').value.trim(),
       mainEmail: $('mainEmail').value.trim(),
       emailPlatform: platform,
       domain: custom ? cleanDomain($('domain').value) : '',
@@ -507,7 +500,6 @@ form .section-title:first-child { margin-top: 0; }
     if (payload.fullName.length < 2) return showError('Please enter your full name.');
     if (payload.companyName.length < 2) return showError('Please enter your company name.');
     if (!EMAIL_RE.test(payload.email)) return showError('Please enter a valid account email address.');
-    if (payload.phone.replace(/\D/g, '').length < 7) return showError('Please enter a valid phone number.');
     if (!EMAIL_RE.test(payload.mainEmail)) return showError('Please enter the email iChat should send and receive from.');
     if (!platform) return showError('Please select your email platform.');
     if (custom) {

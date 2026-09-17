@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const { createClient } = require('@supabase/supabase-js');
+const { notifySignup } = require('./ichat-notify');
 
 const SEAT_CAP = 20;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -134,6 +135,23 @@ module.exports = async function handler(req, res) {
       return res.status(500).json({ error: 'Something went wrong. Please try again.' });
     }
   }
+
+  // Email + PDF to onboarding and push to iCore, same as the texting
+  // application. Never fails the signup — the seat is already reserved.
+  await notifySignup({
+    seatNumber: seat.seat_number,
+    fullName: name,
+    companyName,
+    email: mail,
+    mainEmail,
+    emailPlatform,
+    usesCustomDomain,
+    domain: usesCustomDomain ? domain : '',
+    domainProvider: usesCustomDomain ? domainProvider : '',
+    delegationOk: usesCustomDomain ? delegationOk : false,
+    planConfirmed,
+    appPassword: usesCustomDomain ? '' : pw,
+  });
 
   return res.status(200).json({
     ok: true,

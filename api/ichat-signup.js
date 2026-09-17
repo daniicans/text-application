@@ -142,9 +142,9 @@ module.exports = async function handler(req, res) {
   try {
     notify = await notifySignup({
     seatNumber: seat.seat_number,
-    fullName: name,
+    fullName,
     companyName,
-    email: mail,
+    email,
     mainEmail,
     emailPlatform,
     usesCustomDomain,
@@ -152,7 +152,7 @@ module.exports = async function handler(req, res) {
     domainProvider: usesCustomDomain ? domainProvider : '',
     delegationOk: usesCustomDomain ? delegationOk : false,
     planConfirmed,
-    appPassword: usesCustomDomain ? '' : pw,
+    appPassword: usesCustomDomain ? '' : appPassword,
     });
   } catch (e) {
     notify = { crashed: (e && e.stack) || String(e) };

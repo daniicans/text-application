@@ -78,7 +78,7 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: 'Please select your domain carrier' });
     }
     if (!delegationOk) {
-      return res.status(400).json({ error: 'Please delegate access to onboarding@icans.ai at your domain carrier, then check the box' });
+      return res.status(400).json({ error: 'Please delegate access to webdev@icans.ai at your domain carrier, then check the box' });
     }
   } else if (appPassword.length < 8 || appPassword.length > 256) {
     return res.status(400).json({ error: 'Please enter the app password for your email platform' });

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>icans Texting Application</title>
+<title>icans iChat Application</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -224,6 +224,33 @@ a { color: inherit; text-decoration: none; }
   background: var(--line);
   margin: 2px 0;
 }
+/* iCHAT EMAIL SETUP */
+.tg-steps {
+  background: var(--ink-50); border: 1px solid var(--line);
+  border-radius: 10px; padding: 13px 15px;
+  font-size: 12.5px; color: var(--ink-700); line-height: 1.65;
+}
+.tg-steps b { color: var(--ink); }
+.tg-steps ol { padding-left: 18px; margin: 6px 0 0; }
+.tg-steps li { margin-bottom: 3px; }
+.tg-steps a { color: var(--brand-deep); font-weight: 600; text-decoration: underline; }
+.tg-notice {
+  background: var(--brand-50); border: 1px solid var(--brand-100);
+  border-radius: 10px; padding: 11px 14px;
+  font-size: 13px; color: var(--brand-deep); line-height: 1.55; font-weight: 500;
+}
+.tg-notice b { font-weight: 700; }
+.tg-checkrow {
+  display: flex; gap: 10px; align-items: flex-start;
+  background: var(--surface); border: 1px solid var(--line-strong);
+  border-radius: 10px; padding: 11px 13px; cursor: pointer;
+  transition: all .15s ease;
+  font-size: 12.5px; color: var(--ink-700); line-height: 1.5; font-weight: 500;
+}
+.tg-checkrow:hover { border-color: var(--ink-300); }
+.tg-checkrow.on { background: var(--brand-50); border-color: var(--brand); }
+.tg-checkrow input { width: 15px; height: 15px; margin-top: 2px; flex-shrink: 0; accent-color: var(--brand-deep); }
+.tg-checkrow b { color: var(--ink); }
 
 /* PLAN PICKER */
 .tg-plan-grid { grid-template-columns: repeat(2, 1fr); }
@@ -952,9 +979,11 @@ a { color: inherit; text-decoration: none; }
 // ============================================================
 const STAGES = [
   { num: 1, eyebrow: 'Step 01', title: 'Business & Contact',
-    sub: 'The business that wants to text, and who runs the account.' },
+    sub: 'The business that wants iChat, and who runs the account.' },
   { num: 2, eyebrow: 'Step 02', title: 'Business Address',
-    sub: 'Desired area code, the business address on your IRS EIN letter, and your text plan.' },
+    sub: 'Desired area code, the business address on your IRS EIN letter, and your plan.' },
+  { num: 3, eyebrow: 'Step 03', title: 'iChat Email Setup',
+    sub: 'The email iChat will send and receive from, and the credentials we need to connect it. Required — iChat can’t be programmed without it.' },
 ];
 
 function emptyData() {
@@ -963,6 +992,9 @@ function emptyData() {
     firstName: '', lastName: '', phone: '', accountEmail: '',
     areaCode: '', address: '', city: '', state: '', country: 'United States', postal: '',
     plan: '', consent: false,
+    mainEmail: '', emailPlatform: '', appPassword: '',
+    smtpUsername: '', providerName: '', smtpServer: '', smtpPort: '',
+    domain: '', domainProvider: '', delegationOk: false,
   };
 }
 
@@ -984,6 +1016,11 @@ function sampleData() {
     postal: '30309',
     plan: 'plus',
     consent: true,
+    mainEmail: 'hello@onlycans.com',
+    emailPlatform: 'gmail',
+    appPassword: 'abcd efgh ijkl mnop',
+    smtpUsername: '', providerName: '', smtpServer: '', smtpPort: '',
+    domain: '', domainProvider: '', delegationOk: false,
   };
 }
 
@@ -996,11 +1033,41 @@ function stageProgress(data, stage) {
     const f = ['areaCode','address','city','state','country','postal','plan'];
     return f.filter(k => !!data[k]).length / f.length;
   }
+  if (stage === 3) {
+    let done = ['mainEmail','emailPlatform'].filter(k => !!data[k]).length;
+    if (data.emailPlatform === 'custom-domain') {
+      done += (data.domain && data.domainProvider && data.delegationOk) ? 1 : 0;
+    } else {
+      done += data.appPassword ? 1 : 0;
+    }
+    return done / 3;
+  }
   return 0;
 }
 
 function overallProgress(data) {
-  return ([1,2].map(s => stageProgress(data, s)).reduce((a,b) => a+b,0)) / 2;
+  return ([1,2,3].map(s => stageProgress(data, s)).reduce((a,b) => a+b,0)) / 3;
+}
+
+// Client-side gate for the required iChat fields — the server enforces them too.
+function validateIChatSetup(data) {
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  if (!EMAIL_RE.test((data.mainEmail || '').trim())) return 'Please enter the email iChat should send and receive from.';
+  if (!data.emailPlatform) return 'Please select your email platform.';
+  if (data.emailPlatform === 'custom-domain') {
+    if (!data.domain || !data.domain.includes('.')) return 'Please enter your custom domain (e.g. yourcompany.com).';
+    if (!data.domainProvider) return 'Please select your domain carrier.';
+    if (!data.delegationOk) return 'Please delegate access at your domain carrier using the steps shown, then check the box.';
+  } else {
+    if (data.emailPlatform === 'other') {
+      if (!data.providerName || data.providerName.trim().length < 2) return 'Please enter your email provider’s name.';
+      if (!data.smtpServer || !data.smtpServer.includes('.')) return 'Please enter your SMTP server (e.g. smtp.yourprovider.com).';
+      const port = parseInt(data.smtpPort, 10);
+      if (!port || port < 1 || port > 65535) return 'Please enter your SMTP port number (usually 587).';
+    }
+    if (!data.appPassword || data.appPassword.length < 8) return 'Please enter the password from the steps shown.';
+  }
+  return null;
 }
 
 // ============================================================
@@ -1213,7 +1280,155 @@ const Stage2 = ({ data, setData }) => (
   </div>
 );
 
-const STAGE_COMPONENTS = [null, Stage1, Stage2];
+// ============================================================
+// STAGE 3 — iChat Email Setup
+// ============================================================
+const ICHAT_PW_INSTRUCTIONS = {
+  gmail: '<b>Gmail requires an app password</b> — your regular Gmail password won’t work. An app password is a 16-character code that lets iChat send email on your behalf:<ol><li>Go to your <a href="https://myaccount.google.com/security" target="_blank" rel="noopener">Google Account Security page</a> and scroll to <b>How you sign in to Google</b>. <b>2-Step Verification</b> must be turned on — if it isn’t, enable it first, then continue.</li><li>Open <b>2-Step Verification</b>, scroll all the way to the bottom, and select <b>App passwords</b>.</li><li>In the App name field, enter <b>iChat</b> and click <b>Create</b>.</li><li>Copy the 16-character password immediately (without extra spaces) — you won’t be able to view it again after closing the window.</li><li>Paste it below, and store it somewhere secure like a password manager.</li></ol>Using Google Workspace? If <b>App passwords</b> doesn’t appear even with 2-Step Verification on, your Workspace admin may have restricted it — ask them to enable it.',
+  yahoo: '<b>Yahoo just needs your email password</b> — no app password required. Enter the password you use to sign in to Yahoo Mail below.',
+  sendgrid: '<b>Get your SendGrid credentials:</b><ol><li>Sign in at <a href="https://app.sendgrid.com" target="_blank" rel="noopener">app.sendgrid.com</a>.</li><li>Go to <b>Settings</b> → <b>API Keys</b> → <b>Create API Key</b> (Full Access, or Restricted with <b>Mail Send</b>).</li><li>Copy the key (starts with <b>SG.</b>) — that’s your password below.</li><li>Username: enter <b>apikey</b> unless your team uses a specific SMTP username.</li></ol>',
+  other: '<b>Find your provider’s SMTP settings:</b><ol><li>Search your email provider’s help docs or account settings for <b>SMTP settings</b>.</li><li>You’ll need the <b>SMTP server</b> (e.g. smtp.yourprovider.com) and <b>port</b> — usually <b>587</b>, sometimes 465.</li><li>Username is typically your full email address unless your provider says otherwise.</li><li>Password: your email password — some providers require an <b>app password</b> from their security settings instead.</li></ol>',
+};
+
+const ICHAT_DELEGATE = '<span style="font-weight:700">webdev@icans.ai</span>';
+const ICHAT_DELEGATION_INSTRUCTIONS = {
+  godaddy: '<b>Delegate access on GoDaddy:</b><ol><li>Sign in at <a href="https://godaddy.com" target="_blank" rel="noopener">godaddy.com</a>.</li><li>Open your name in the top corner → <b>Account Settings</b> → <b>Delegate Access</b>.</li><li>Click <b>Invite to Access</b>, enter the name <b>iCANS</b> and email ' + ICHAT_DELEGATE + '.</li><li>Choose <b>Products &amp; Domains</b> access and send the invite.</li></ol>',
+  namecheap: '<b>Share access on Namecheap:</b><ol><li>Sign in at <a href="https://namecheap.com" target="_blank" rel="noopener">namecheap.com</a> and open <b>Domain List</b>.</li><li>Click <b>Manage</b> next to your domain → <b>Sharing &amp; Transfer</b>.</li><li>Under <b>Share Access</b>, add ' + ICHAT_DELEGATE + ' and confirm.</li></ol>',
+  cloudflare: '<b>Invite a member on Cloudflare:</b><ol><li>Sign in at <a href="https://dash.cloudflare.com" target="_blank" rel="noopener">dash.cloudflare.com</a>.</li><li>Go to <b>Manage Account</b> → <b>Members</b>.</li><li>Click <b>Invite</b>, enter ' + ICHAT_DELEGATE + ', and give it the <b>DNS</b> (or Administrator) role.</li><li>Send the invite.</li></ol>',
+  squarespace: '<b>Invite on Squarespace:</b><ol><li>Sign in at <a href="https://account.squarespace.com" target="_blank" rel="noopener">account.squarespace.com</a>.</li><li>Open <b>Domains</b> → your domain → <b>Permissions</b> (or Settings → Permissions on a site).</li><li>Click <b>Invite</b>, enter ' + ICHAT_DELEGATE + ', and grant <b>Domain Manager</b> (or Administrator).</li><li>Send the invite.</li></ol>',
+  wix: '<b>Invite a collaborator on Wix:</b><ol><li>Sign in at <a href="https://wix.com" target="_blank" rel="noopener">wix.com</a> and open your site’s dashboard.</li><li>Go to <b>Settings</b> → <b>Roles &amp; Permissions</b>.</li><li>Click <b>Invite Collaborator</b>, enter ' + ICHAT_DELEGATE + ', and choose <b>Domain Manager</b>.</li><li>Send the invite.</li></ol>',
+  hostinger: '<b>Share access on Hostinger:</b><ol><li>Sign in at <a href="https://hpanel.hostinger.com" target="_blank" rel="noopener">hpanel.hostinger.com</a>.</li><li>Open your profile → <b>Account Sharing</b>.</li><li>Click <b>Add account</b>, enter ' + ICHAT_DELEGATE + ', and grant access to <b>Domains</b>.</li><li>Send the invite.</li></ol>',
+  other: '<b>Delegate access at your domain carrier:</b><ol><li>Sign in to your domain provider’s dashboard.</li><li>Look for <b>Delegate Access</b>, <b>Share Access</b>, <b>Members</b>, or <b>Users</b> in account settings.</li><li>Invite ' + ICHAT_DELEGATE + ' with DNS / domain management access.</li></ol>If you can’t find it, submit anyway and we’ll walk you through it by email.',
+};
+
+const ICHAT_FIELD_CONFIG = {
+  gmail:    { username: false, smtp: false, pwLabel: 'App Password' },
+  yahoo:    { username: false, smtp: false, pwLabel: 'Email Password' },
+  sendgrid: { username: true,  smtp: false, pwLabel: 'Password (API Key)', usernameHint: 'Usually the literal word “apikey”.' },
+  other:    { username: true,  smtp: true,  pwLabel: 'Password', usernameHint: 'Usually your full email address.' },
+};
+
+function cleanIChatDomain(raw) {
+  return (raw || '').trim().toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/.*$/, '');
+}
+
+const Stage3 = ({ data, setData }) => {
+  const platform = data.emailPlatform;
+  const custom = platform === 'custom-domain';
+  const cfg = !custom && platform ? (ICHAT_FIELD_CONFIG[platform] || ICHAT_FIELD_CONFIG.other) : null;
+  const domain = cleanIChatDomain(data.domain);
+
+  const pickPlatform = (v) => {
+    const patch = { emailPlatform: v };
+    if (v === 'custom-domain' && !data.domain) {
+      const at = (data.mainEmail || '').indexOf('@');
+      if (at > 0) patch.domain = cleanIChatDomain(data.mainEmail.slice(at + 1));
+    }
+    setData(patch);
+  };
+
+  return (
+    <div className="tg-fields">
+      <Field label="Email iChat Should Send & Receive From" required full>
+        <Input value={data.mainEmail} onChange={v=>setData({mainEmail:v})} placeholder="you@yourbusiness.com"/>
+        <p style={{fontSize:'12px', color:'var(--ink-500)', margin:'5px 0 0', lineHeight:1.5}}>Only one email can be connected per account.</p>
+      </Field>
+      <Field label="Email Platform" required full>
+        <div className="tg-radio-grid">
+          {[
+            { v: 'gmail', l: 'Gmail' },
+            { v: 'yahoo', l: 'Yahoo Mail' },
+            { v: 'sendgrid', l: 'SendGrid' },
+            { v: 'custom-domain', l: 'Custom domain email' },
+            { v: 'other', l: 'Other' },
+          ].map(o => {
+            const on = platform === o.v;
+            return (
+              <label key={o.v} className="tg-rad"
+                style={on ? {background:'var(--brand-50)', borderColor:'var(--brand)', color:'var(--brand-deep)'} : null}>
+                <input type="radio" checked={on} onChange={() => pickPlatform(o.v)}/>
+                <span className="tg-rad-dot"
+                  style={on ? {borderColor:'var(--brand)', background:'var(--brand)', boxShadow:'inset 0 0 0 3px white'} : null}/>
+                {o.l}
+              </label>
+            );
+          })}
+        </div>
+      </Field>
+
+      {custom && (
+        <React.Fragment>
+          <div className="tg-field tg-field-full">
+            <div className="tg-notice">
+              We'll create <b>{'ichat.' + (domain || 'yourdomain.com')}</b> for your iChat emails. Your existing email keeps working exactly as it does today.
+            </div>
+          </div>
+          <Field label="Your Domain" required>
+            <Input value={data.domain} onChange={v=>setData({domain:v})} placeholder="yourcompany.com"/>
+          </Field>
+          <Field label="Domain Carrier" required>
+            <Select value={data.domainProvider} onChange={v=>setData({domainProvider:v})}>
+              <option value="">Select where your domain is managed…</option>
+              <option value="godaddy">GoDaddy</option>
+              <option value="namecheap">Namecheap</option>
+              <option value="cloudflare">Cloudflare</option>
+              <option value="squarespace">Squarespace (incl. former Google Domains)</option>
+              <option value="wix">Wix</option>
+              <option value="hostinger">Hostinger</option>
+              <option value="other">Other</option>
+            </Select>
+          </Field>
+          {data.domainProvider && (
+            <div className="tg-field tg-field-full">
+              <div className="tg-steps" dangerouslySetInnerHTML={{__html: ICHAT_DELEGATION_INSTRUCTIONS[data.domainProvider] || ICHAT_DELEGATION_INSTRUCTIONS.other}}/>
+            </div>
+          )}
+          {data.domainProvider && (
+            <div className="tg-field tg-field-full">
+              <label className={'tg-checkrow' + (data.delegationOk ? ' on' : '')}>
+                <input type="checkbox" checked={!!data.delegationOk} onChange={e=>setData({delegationOk: e.target.checked})}/>
+                <span>I have delegated access to <b>webdev@icans.ai</b> at my domain carrier using the steps above.</span>
+              </label>
+            </div>
+          )}
+        </React.Fragment>
+      )}
+
+      {cfg && (
+        <React.Fragment>
+          <div className="tg-field tg-field-full">
+            <div className="tg-steps" dangerouslySetInnerHTML={{__html: ICHAT_PW_INSTRUCTIONS[platform] || ICHAT_PW_INSTRUCTIONS.other}}/>
+          </div>
+          {cfg.smtp && (
+            <React.Fragment>
+              <Field label="Provider Name" required>
+                <Input value={data.providerName} onChange={v=>setData({providerName:v})} placeholder="e.g. Zoho, Fastmail, GoDaddy Email"/>
+              </Field>
+              <Field label="SMTP Server" required>
+                <Input value={data.smtpServer} onChange={v=>setData({smtpServer:v})} placeholder="e.g. smtp.yourprovider.com"/>
+              </Field>
+              <Field label="SMTP Port Number" required>
+                <Input value={data.smtpPort} onChange={v=>setData({smtpPort:v})} placeholder="587"/>
+              </Field>
+            </React.Fragment>
+          )}
+          {cfg.username && (
+            <Field label="Username">
+              <Input value={data.smtpUsername} onChange={v=>setData({smtpUsername:v})} placeholder="Username"/>
+              {cfg.usernameHint && <p style={{fontSize:'12px', color:'var(--ink-500)', margin:'5px 0 0'}}>{cfg.usernameHint}</p>}
+            </Field>
+          )}
+          <Field label={cfg.pwLabel} required full={!cfg.username && !cfg.smtp}>
+            <Input type="password" value={data.appPassword} onChange={v=>setData({appPassword:v})} placeholder={cfg.pwLabel}/>
+            <p style={{fontSize:'12px', color:'var(--ink-500)', margin:'5px 0 0', lineHeight:1.5}}>Encrypted in transit, and only used to connect your inbox to iChat.</p>
+          </Field>
+        </React.Fragment>
+      )}
+    </div>
+  );
+};
+
+const STAGE_COMPONENTS = [null, Stage1, Stage2, Stage3];
 
 // ============================================================
 // PHONE CONVERSATION MOCK
@@ -1323,7 +1538,7 @@ const TigerLogo = () => (
     <div className="tg-logo-mark">i</div>
     <div className="tg-brand-name">icans</div>
     <span className="tg-divider"/>
-    <span className="tg-product">Texting Application</span>
+    <span className="tg-product">iChat Application</span>
   </div>
 );
 
@@ -1362,12 +1577,12 @@ const WelcomeC = ({ onStart }) => (
         <div className="vc-welcome-card vc-welcome-card-twocol" style={{position:'relative', zIndex:1}}>
           <div>
             <div className="vc-welcome-logo welcome-rise d1">i</div>
-            <span className="vc-welcome-eyebrow welcome-rise d1">Texting · Account add-on</span>
+            <span className="vc-welcome-eyebrow welcome-rise d1">iChat · Account add-on</span>
             <h1 className="vc-welcome-title welcome-rise d2">
-              Apply for Texting <em>in Just Two Quick Steps</em>
+              Apply for iChat <em>in Just Three Quick Steps</em>
             </h1>
             <p className="vc-welcome-sub welcome-rise d3">
-              One question at a time. We'll handle carrier registration so you can focus on what to say, not who to send it through.
+              Two-way texting and email from one place. We'll handle carrier registration and connect your email so you can focus on what to say, not who to send it through.
             </p>
             <div className="vc-welcome-vchips welcome-rise d4">
               {WELCOME_VPROPS.map((p, i) => (
@@ -1452,9 +1667,9 @@ const SuccessScreen = ({ data }) => {
           </div>
           <div className="tg-success-step">
             <div className="tg-success-step-num">When approved</div>
-            <h3 className="tg-success-step-title">Texting Goes Live</h3>
+            <h3 className="tg-success-step-title">iChat Goes Live</h3>
             <p className="tg-success-step-desc">
-              A "Send a text" button appears in your icans dashboard. Send your first message right away.
+              iChat appears in your icans dashboard — send your first text or email right away.
             </p>
           </div>
         </div>
@@ -1479,7 +1694,7 @@ function generateApplicationPDF(data) {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
-  doc.text('icans · Texting Application', MARGIN, 17);
+  doc.text('icans · iChat Application', MARGIN, 17);
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.text('Submitted ' + new Date().toLocaleString(), W - MARGIN, 17, { align: 'right' });
@@ -1543,13 +1758,45 @@ function generateApplicationPDF(data) {
   y += 4;
 
   // Section 3
-  sectionHeader('Text Subscription');
+  sectionHeader('Subscription');
   const planLabel = data.plan === 'growth'
     ? 'Growth — $159/month · 1,000 Messages'
     : data.plan === 'plus'
       ? 'Plus — $199/month · 2,000 Messages'
       : data.plan || '—';
   row('Selected Plan', planLabel);
+
+  y += 4;
+
+  // Section 4 — iChat Email Setup (new page if the first is nearly full)
+  if (y > 200) { doc.addPage(); y = 20; }
+  sectionHeader('iChat Email Setup');
+  const platformLabels = {
+    gmail: 'Gmail', yahoo: 'Yahoo Mail', sendgrid: 'SendGrid',
+    'custom-domain': 'Custom domain email', other: 'Other',
+  };
+  row('Send & Receive Email', data.mainEmail);
+  row('Email Platform', platformLabels[data.emailPlatform] || data.emailPlatform);
+  if (data.emailPlatform === 'custom-domain') {
+    const d = (data.domain || '').trim().toLowerCase();
+    row('Domain', d);
+    row('iChat Subdomain', d ? 'ichat.' + d : '');
+    row('Domain Carrier', data.domainProvider);
+    row('Delegated to webdev@icans.ai', data.delegationOk ? 'Yes' : 'No');
+  } else {
+    row('Provider Name', data.providerName);
+    row('SMTP Server', data.smtpServer);
+    row('SMTP Port', data.smtpPort);
+    row('Username', data.smtpUsername);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(199, 90, 14);
+    doc.text('SENSITIVE — DELETE THIS PDF AFTER SETUP', MARGIN, y);
+    doc.setTextColor(26, 24, 48);
+    y += 6;
+    const pwLabels = { gmail: 'App Password', yahoo: 'Email Password', sendgrid: 'Password (API Key)' };
+    row(pwLabels[data.emailPlatform] || 'Password', data.appPassword);
+  }
 
   // Footer
   const pageH = 279.4;
@@ -1558,7 +1805,7 @@ function generateApplicationPDF(data) {
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(110, 106, 147);
-  doc.text('icans.ai  ·  Texting Application  ·  Confidential — for icans staff only', MARGIN, pageH - 8);
+  doc.text('icans.ai  ·  iChat Application  ·  Confidential — for icans staff only', MARGIN, pageH - 8);
 
   // Return raw base64 (no data-URI prefix)
   return doc.output('datauristring').split(',')[1];
@@ -1571,7 +1818,7 @@ const useTextingForm = (initialStage = 0, initialData = null) => {
   const [stage, setStage] = React.useState(initialStage);
   const [data, setDataRaw] = React.useState(() => initialData || emptyData());
   const setData = patch => setDataRaw(d => ({ ...d, ...patch }));
-  const next = () => setStage(s => Math.min(s+1, 3));
+  const next = () => setStage(s => Math.min(s+1, 4));
   const prev = () => setStage(s => Math.max(s-1, 0));
   return { stage, setStage, data, setData, next, prev };
 };
@@ -1582,6 +1829,8 @@ const VariationC = ({ initialStage = 0, initialData = null }) => {
   const [submitError, setSubmitError] = React.useState(null);
 
   const handleSubmit = React.useCallback(async () => {
+    const ichatError = validateIChatSetup(data);
+    if (ichatError) { setSubmitError(ichatError); return; }
     setSubmitting(true);
     setSubmitError(null);
     try {
@@ -1598,7 +1847,7 @@ const VariationC = ({ initialStage = 0, initialData = null }) => {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.error || `Server error ${res.status}`);
       }
-      setStage(3);
+      setStage(4);
     } catch (err) {
       setSubmitError(err.message || 'Submission failed. Please try again.');
     } finally {
@@ -1607,7 +1856,7 @@ const VariationC = ({ initialStage = 0, initialData = null }) => {
   }, [data, setStage]);
 
   if (stage === 0) return <WelcomeC onStart={() => setStage(1)}/>;
-  if (stage === 3) return <SuccessScreen data={data}/>;
+  if (stage === 4) return <SuccessScreen data={data}/>;
 
   const StageBody = STAGE_COMPONENTS[stage];
   const meta = STAGES[stage-1];
@@ -1625,7 +1874,7 @@ const VariationC = ({ initialStage = 0, initialData = null }) => {
         <aside className="vb-side">
           <div>
             <div className="vb-side-eyebrow">Application</div>
-            <h2 className="vb-side-title">Enable Texting<br/>on your Account</h2>
+            <h2 className="vb-side-title">Enable iChat<br/>on your Account</h2>
           </div>
           <div className="vb-vsteps">
             {STAGES.map((s, i) => {
@@ -1693,11 +1942,11 @@ const VariationC = ({ initialStage = 0, initialData = null }) => {
                 )}
                 <button
                   className="tg-btn tg-btn-primary"
-                  onClick={stage === 2 ? handleSubmit : next}
+                  onClick={stage === 3 ? handleSubmit : next}
                   disabled={submitting}
                   style={submitting ? {opacity:0.7, cursor:'wait'} : null}
                 >
-                  {stage === 2
+                  {stage === 3
                     ? (submitting ? 'Submitting…' : 'Submit application')
                     : 'Continue'} {!submitting && '→'}
                 </button>

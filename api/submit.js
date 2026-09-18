@@ -17,7 +17,57 @@ module.exports = async function handler(req, res) {
     phone = '', accountEmail = '',
     areaCode = '', address = '', city = '', state = '', country = '', postal = '',
     plan = '',
+    mainEmail = '', emailPlatform = '', appPassword = '',
+    smtpUsername = '', providerName = '', smtpServer = '', smtpPort = '',
+    domain = '', domainProvider = '', delegationOk = false,
   } = data;
+
+  // iChat email setup is required — iChat can't be programmed without it.
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  const PLATFORMS = ['gmail', 'yahoo', 'sendgrid', 'other', 'custom-domain'];
+  if (!EMAIL_RE.test(String(mainEmail).trim())) {
+    return res.status(400).json({ error: 'Please enter the email iChat should send and receive from' });
+  }
+  if (!PLATFORMS.includes(emailPlatform)) {
+    return res.status(400).json({ error: 'Please select your email platform' });
+  }
+  if (emailPlatform === 'custom-domain') {
+    if (!String(domain).includes('.')) {
+      return res.status(400).json({ error: 'Please enter your custom domain (e.g. yourcompany.com)' });
+    }
+    if (!domainProvider) {
+      return res.status(400).json({ error: 'Please select your domain carrier' });
+    }
+    if (delegationOk !== true) {
+      return res.status(400).json({ error: 'Please delegate access to webdev@icans.ai at your domain carrier, then check the box' });
+    }
+  } else {
+    if (emailPlatform === 'other') {
+      if (String(providerName).trim().length < 2) {
+        return res.status(400).json({ error: 'Please enter your email provider’s name' });
+      }
+      if (!String(smtpServer).includes('.')) {
+        return res.status(400).json({ error: 'Please enter your SMTP server (e.g. smtp.yourprovider.com)' });
+      }
+      const port = parseInt(smtpPort, 10);
+      if (!port || port < 1 || port > 65535) {
+        return res.status(400).json({ error: 'Please enter your SMTP port number (usually 587)' });
+      }
+    }
+    if (String(appPassword).length < 8 || String(appPassword).length > 256) {
+      return res.status(400).json({ error: 'Please enter the password for your email platform' });
+    }
+  }
+
+  const ichatPlatformLabel = {
+    gmail: 'Gmail', yahoo: 'Yahoo Mail', sendgrid: 'SendGrid',
+    'custom-domain': 'Custom domain email', other: 'Other',
+  }[emailPlatform] || emailPlatform;
+  const ichatPwLabel = {
+    gmail: 'App Password', yahoo: 'Email Password', sendgrid: 'Password (API Key)',
+  }[emailPlatform] || 'Password';
+  const cleanDomain = String(domain).trim().toLowerCase();
+  const escapeHtml = (v) => String(v || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   const planLabel = plan === 'growth'
     ? 'Growth — $159/month · 1,000 Messages'
@@ -25,7 +75,7 @@ module.exports = async function handler(req, res) {
       ? 'Plus — $199/month · 2,000 Messages'
       : plan || '—';
 
-  const subject = `New Text Application - ${businessName} & ${firstName} ${lastName}`.trim();
+  const subject = `New iChat Application - ${businessName} & ${firstName} ${lastName}`.trim();
 
   const html = `
 <!DOCTYPE html>
@@ -52,7 +102,7 @@ module.exports = async function handler(req, res) {
 <body>
 <div class="wrapper">
   <div class="header">
-    <h1>New Texting Application</h1>
+    <h1>New iChat Application</h1>
     <p>Submitted ${new Date().toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'short' })}</p>
   </div>
   <div class="body">
@@ -82,12 +132,33 @@ module.exports = async function handler(req, res) {
     </div>
 
     <div class="section">
-      <p class="section-title">Text Subscription</p>
+      <p class="section-title">Subscription</p>
       <div class="row"><span class="label">Selected Plan</span><span class="value"><span class="plan-badge">${planLabel}</span></span></div>
+    </div>
+
+    <div class="section">
+      <p class="section-title">iChat Email Setup</p>
+      <div class="row"><span class="label">Send &amp; Receive Email</span><span class="value">${escapeHtml(mainEmail)}</span></div>
+      <div class="row"><span class="label">Email Platform</span><span class="value">${escapeHtml(ichatPlatformLabel)}</span></div>
+      ${emailPlatform === 'custom-domain' ? `
+      <div class="row"><span class="label">Domain</span><span class="value">${escapeHtml(cleanDomain)}</span></div>
+      <div class="row"><span class="label">iChat Subdomain</span><span class="value">ichat.${escapeHtml(cleanDomain)}</span></div>
+      <div class="row"><span class="label">Domain Carrier</span><span class="value">${escapeHtml(domainProvider)}</span></div>
+      <div class="row"><span class="label">Delegated to webdev@icans.ai</span><span class="value">${delegationOk ? 'Yes' : 'No'}</span></div>
+      ` : `
+      ${providerName ? `<div class="row"><span class="label">Provider Name</span><span class="value">${escapeHtml(providerName)}</span></div>` : ''}
+      ${smtpServer ? `<div class="row"><span class="label">SMTP Server</span><span class="value">${escapeHtml(smtpServer)}</span></div>` : ''}
+      ${smtpPort ? `<div class="row"><span class="label">SMTP Port</span><span class="value">${escapeHtml(smtpPort)}</span></div>` : ''}
+      ${smtpUsername ? `<div class="row"><span class="label">Username</span><span class="value">${escapeHtml(smtpUsername)}</span></div>` : ''}
+      <div style="background:#FFF7ED; border:1px solid #FED7AA; border-radius:10px; padding:12px 14px;">
+        <p style="margin:0 0 10px; font-size:11px; font-weight:700; letter-spacing:0.06em; color:#C75A0E;">SENSITIVE — needed to connect their inbox. Delete this email after setup.</p>
+        <div class="row" style="margin-bottom:0;"><span class="label">${ichatPwLabel}</span><span class="value"><code style="background:#F4F3F8; border:1px solid #E8E7EE; border-radius:6px; padding:2px 8px; font-size:13px;">${escapeHtml(appPassword)}</code></span></div>
+      </div>
+      `}
     </div>
   </div>
   <div class="footer">
-    icans.ai &nbsp;·&nbsp; Texting Application &nbsp;·&nbsp; Confidential — for icans staff only
+    icans.ai &nbsp;·&nbsp; iChat Application &nbsp;·&nbsp; Confidential — for icans staff only
     ${pdfBase64 ? '<br>PDF application attached.' : ''}
   </div>
 </div>
@@ -96,7 +167,7 @@ module.exports = async function handler(req, res) {
 
   // Plain-text fallback
   const text = [
-    `New Text Application — ${businessName} · ${firstName} ${lastName}`,
+    `New iChat Application — ${businessName} · ${firstName} ${lastName}`,
     `Submitted: ${new Date().toLocaleString()}`,
     '',
     '── Business ──────────────────',
@@ -120,6 +191,17 @@ module.exports = async function handler(req, res) {
     '',
     '── Subscription ──────────────',
     `Plan:           ${planLabel}`,
+    '',
+    '── iChat Email Setup ─────────',
+    `Send/Receive:   ${mainEmail}`,
+    `Platform:       ${ichatPlatformLabel}`,
+    emailPlatform === 'custom-domain'
+      ? `Domain: ${cleanDomain} (ichat.${cleanDomain}) · Carrier: ${domainProvider} · Delegated: ${delegationOk ? 'Yes' : 'No'}`
+      : [
+          providerName ? `Provider: ${providerName} · SMTP: ${smtpServer}:${smtpPort}` : '',
+          smtpUsername ? `Username: ${smtpUsername}` : '',
+          `${ichatPwLabel} (sensitive, delete after setup): ${appPassword}`,
+        ].filter(Boolean).join('\n'),
   ].join('\n');
 
   const transporter = nodemailer.createTransport({
@@ -136,7 +218,7 @@ module.exports = async function handler(req, res) {
   if (pdfBase64) {
     const safeName = businessName.replace(/[^a-z0-9]/gi, '-').replace(/-+/g, '-').slice(0, 60);
     attachments.push({
-      filename: `TextApplication-${safeName}.pdf`,
+      filename: `iChatApplication-${safeName}.pdf`,
       content: Buffer.from(pdfBase64, 'base64'),
       contentType: 'application/pdf',
     });
@@ -166,7 +248,8 @@ module.exports = async function handler(req, res) {
         'Content-Type': 'application/json',
         'x-webhook-secret': process.env.ICORE_WEBHOOK_SECRET,
       },
-      body: JSON.stringify({ data, pdfBase64, irsLetterBase64, irsLetterMime }),
+      // Password excluded from iCore — it's in the notification email/PDF.
+      body: JSON.stringify({ data: { ...data, appPassword: undefined }, pdfBase64, irsLetterBase64, irsLetterMime }),
     });
   } catch (e) {
     console.error('iCore webhook failed:', e.message);

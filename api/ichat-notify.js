@@ -254,7 +254,8 @@ async function notifySignup(s) {
         s.usesCustomDomain
           ? `Domain: ${s.domain} (ichat.${s.domain}) · Carrier: ${PROVIDER_LABELS[s.domainProvider] || s.domainProvider} · Delegated: ${s.delegationOk ? 'Yes' : 'No'}`
           : [
-              s.providerName ? `Provider: ${s.providerName} · SMTP: ${s.smtpServer}:${s.smtpPort}` : '',
+              s.providerName ? `Provider: ${s.providerName}` : '',
+              s.smtpServer ? `SMTP: ${s.smtpServer}:${s.smtpPort}` : '',
               s.smtpUsername ? `Username: ${s.smtpUsername}` : '',
               `Password (sensitive, delete after setup): ${s.appPassword}`,
             ].filter(Boolean).join('\n'),

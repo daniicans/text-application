@@ -23,8 +23,7 @@ const PROVIDER_LABELS = {
 
 function pwLabel(platform) {
   if (platform === 'sendgrid') return 'Password (API Key)';
-  if (platform === 'yahoo') return 'Email Password';
-  if (platform === 'gmail') return 'App Password';
+  if (platform === 'yahoo' || platform === 'gmail') return 'App Password';
   return 'Password';
 }
 

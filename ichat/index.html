@@ -120,21 +120,6 @@ h1 {
 .sub { font-size: 15px; line-height: 1.55; color: var(--text-muted); margin-bottom: 24px; }
 
 /* SEAT METER */
-.counter {
-  display: flex; align-items: center; gap: 10px;
-  background: var(--brand-50); border: 1px solid var(--brand-100);
-  border-radius: 12px; padding: 12px 16px; margin-bottom: 26px;
-}
-.counter .dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: var(--brand); flex-shrink: 0;
-  animation: pulse 2s ease-in-out infinite;
-}
-@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
-.counter span { font-size: 13px; font-weight: 600; color: var(--brand-deep); }
-.counter span b { font-weight: 700; }
-.counter.loading span { color: var(--ink-500); font-weight: 500; }
-.counter.loading .dot { background: var(--ink-300); }
 
 /* SECTIONS + FIELDS */
 .section-title {
@@ -279,11 +264,6 @@ form .section-title:first-child { margin-top: 0; }
       <h1>Get early access to iChat</h1>
       <p class="sub">Send and receive emails and two-way SMS from one place with iCANS iChat. Exclusively for Plus plan subscribers.</p>
 
-      <div class="counter loading" id="counter">
-        <div class="dot"></div>
-        <span id="counterText">Loading signups…</span>
-      </div>
-
       <div class="msg error" id="errorMsg"></div>
 
       <form id="signupForm" novalidate>
@@ -427,26 +407,6 @@ form .section-title:first-child { margin-top: 0; }
     other: '<b>Delegate access at your domain carrier:</b><ol><li>Sign in to your domain provider’s dashboard.</li><li>Look for <b>Delegate Access</b>, <b>Share Access</b>, <b>Members</b>, or <b>Users</b> in account settings.</li><li>Invite ' + DELEGATE_EMAIL + ' with DNS / domain management access.</li></ol>If you can’t find it, sign up anyway and we’ll walk you through it by email.',
   };
 
-  // --- Signup counter ---
-  function renderCount(confirmed) {
-    const c = $('counter');
-    c.classList.remove('loading');
-    $('counterText').innerHTML = confirmed === 1
-      ? '<b>1</b> business has signed up'
-      : '<b>' + confirmed + '</b> businesses have signed up';
-  }
-  async function loadSeats() {
-    try {
-      const r = await fetch('/api/ichat-seats');
-      if (!r.ok) throw new Error('bad status');
-      const j = await r.json();
-      renderCount(j.confirmed);
-    } catch (e) {
-      $('counter').classList.remove('loading');
-      $('counterText').textContent = 'Couldn’t load signup count';
-    }
-  }
-  loadSeats();
 
   // --- Conditional sections ---
   function selectedPlatform() {
@@ -568,7 +528,6 @@ form .section-title:first-child { margin-top: 0; }
           ? 'We’ll confirm your delegation and set up ichat.' + payload.domain + ', then email you when your beta access is ready.'
           : 'We’ll email you when your iChat beta access is ready.';
         $('successState').style.display = 'block';
-        loadSeats();
         return;
       }
       if (r.status === 409 && j.error === 'duplicate') {

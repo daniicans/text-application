@@ -138,7 +138,8 @@ module.exports = async function handler(req, res) {
       return res.status(409).json({ error: 'duplicate', message: 'This email is already signed up' });
     }
     console.error('reserve_ichat_seat failed:', error.message);
-    return res.status(500).json({ error: 'Something went wrong. Please try again.' });
+    // TEMP DEBUG — surface the DB error to diagnose production 500s; remove after.
+    return res.status(500).json({ error: 'Something went wrong. Please try again.', debugRpc: error.message, debugCode: error.code || null });
   }
 
   const seat = Array.isArray(data) ? data[0] : data;

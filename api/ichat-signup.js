@@ -5,7 +5,8 @@ const { notifySignup } = require('./ichat-notify');
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const DOMAIN_RE = /^(?!-)[a-z0-9-]{1,63}(?<!-)(\.(?!-)[a-z0-9-]{1,63}(?<!-))+$/i;
 // Platforms that connect via an app password; custom-domain connects via DNS delegation instead.
-const APP_PASSWORD_PLATFORMS = ['gmail', 'yahoo', 'sendgrid', 'other'];
+const APP_PASSWORD_PLATFORMS = ['gmail', 'yahoo', 'm365', 'sendgrid', 'webmail', 'other'];
+const SMTP_DETAIL_PLATFORMS = ['webmail', 'other'];
 const PLATFORMS = [...APP_PASSWORD_PLATFORMS, 'custom-domain'];
 const DOMAIN_PROVIDERS = ['godaddy', 'namecheap', 'cloudflare', 'squarespace', 'wix', 'hostinger', 'other'];
 
@@ -85,16 +86,16 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: 'Please delegate access to webdev@icans.ai at your domain carrier, then check the box' });
     }
   } else {
-    if (emailPlatform === 'other') {
-      if (providerName.length < 2 || providerName.length > 120) {
-        return res.status(400).json({ error: 'Please enter your email provider’s name' });
-      }
+    if (emailPlatform === 'other' && (providerName.length < 2 || providerName.length > 120)) {
+      return res.status(400).json({ error: 'Please enter your email provider\u2019s name' });
+    }
+    if (SMTP_DETAIL_PLATFORMS.includes(emailPlatform)) {
       if (!smtpServer.includes('.') || smtpServer.length > 253) {
-        return res.status(400).json({ error: 'Please enter your SMTP server (e.g. smtp.yourprovider.com)' });
+        return res.status(400).json({ error: 'Please enter your SMTP server (e.g. mail.yourdomain.com)' });
       }
       const port = parseInt(smtpPort, 10);
       if (!port || port < 1 || port > 65535) {
-        return res.status(400).json({ error: 'Please enter your SMTP port number (usually 587)' });
+        return res.status(400).json({ error: 'Please enter your SMTP port number' });
       }
     }
     if (smtpUsername.length > 254) {
@@ -104,6 +105,12 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: 'Please enter the password for your email platform' });
     }
   }
+
+  // Microsoft 365 uses fixed SMTP settings; webmail/other supply their own.
+  const effSmtpServer = emailPlatform === 'm365' ? 'smtp.office365.com'
+    : SMTP_DETAIL_PLATFORMS.includes(emailPlatform) ? smtpServer : '';
+  const effSmtpPort = emailPlatform === 'm365' ? '587'
+    : SMTP_DETAIL_PLATFORMS.includes(emailPlatform) ? smtpPort : '';
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
     auth: { persistSession: false },
@@ -124,8 +131,8 @@ module.exports = async function handler(req, res) {
       plan_confirmed: planConfirmed,
       smtp_username: usesCustomDomain ? '' : smtpUsername,
       smtp_provider_name: emailPlatform === 'other' ? providerName : '',
-      smtp_server: emailPlatform === 'other' ? smtpServer : '',
-      smtp_port: emailPlatform === 'other' ? smtpPort : '',
+      smtp_server: effSmtpServer,
+      smtp_port: effSmtpPort,
     },
   });
 
@@ -176,8 +183,8 @@ module.exports = async function handler(req, res) {
     appPassword: usesCustomDomain ? '' : appPassword,
     smtpUsername: usesCustomDomain ? '' : smtpUsername,
     providerName: emailPlatform === 'other' ? providerName : '',
-    smtpServer: emailPlatform === 'other' ? smtpServer : '',
-    smtpPort: emailPlatform === 'other' ? smtpPort : '',
+    smtpServer: effSmtpServer,
+    smtpPort: effSmtpPort,
     });
   } catch (e) {
     notify = { crashed: (e && e.stack) || String(e) };

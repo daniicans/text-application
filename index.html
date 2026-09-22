@@ -1060,10 +1060,12 @@ function validateIChatSetup(data) {
     if (!data.delegationOk) return 'Please delegate access at your domain carrier using the steps shown, then check the box.';
   } else {
     if (data.emailPlatform === 'other') {
-      if (!data.providerName || data.providerName.trim().length < 2) return 'Please enter your email provider’s name.';
-      if (!data.smtpServer || !data.smtpServer.includes('.')) return 'Please enter your SMTP server (e.g. smtp.yourprovider.com).';
+      if (!data.providerName || data.providerName.trim().length < 2) return 'Please enter your email provider\u2019s name.';
+    }
+    if (data.emailPlatform === 'other' || data.emailPlatform === 'webmail') {
+      if (!data.smtpServer || !data.smtpServer.includes('.')) return 'Please enter your SMTP server (e.g. mail.yourdomain.com).';
       const port = parseInt(data.smtpPort, 10);
-      if (!port || port < 1 || port > 65535) return 'Please enter your SMTP port number (usually 587).';
+      if (!port || port < 1 || port > 65535) return 'Please enter your SMTP port number.';
     }
     if (!data.appPassword || data.appPassword.length < 8) return 'Please enter the password from the steps shown.';
   }
@@ -1286,6 +1288,8 @@ const Stage2 = ({ data, setData }) => (
 const ICHAT_PW_INSTRUCTIONS = {
   gmail: '<b>Gmail requires an app password</b> — your regular Gmail password won’t work. An app password is a 16-character code that lets iChat send email on your behalf:<ol><li>Go to your <a href="https://myaccount.google.com/security" target="_blank" rel="noopener">Google Account Security page</a> and scroll to <b>How you sign in to Google</b>. <b>2-Step Verification</b> must be turned on — if it isn’t, enable it first, then continue.</li><li>Open <b>2-Step Verification</b>, scroll all the way to the bottom, and select <b>App passwords</b>.</li><li>In the App name field, enter <b>iChat</b> and click <b>Create</b>.</li><li>Copy the 16-character password immediately (without extra spaces) — you won’t be able to view it again after closing the window.</li><li>Paste it below, and store it somewhere secure like a password manager.</li></ol>Using Google Workspace? If <b>App passwords</b> doesn’t appear even with 2-Step Verification on, your Workspace admin may have restricted it — ask them to enable it.',
   yahoo: '<b>Get your Yahoo app password:</b><ol><li>Go to <a href="https://login.yahoo.com/myaccount/security/" target="_blank" rel="noopener">Yahoo Account Security</a>.</li><li>Select <b>Generate app password</b> (or \u201CManage app passwords\u201D).</li><li>Choose <b>Other app</b>, name it <b>iChat</b>, and click Generate.</li><li>Copy the password and paste it below — your regular Yahoo password won\u2019t work.</li></ol>',
+  m365: '<b>Get your Microsoft 365 / Outlook sign-in ready:</b><ol><li>Ask your Microsoft 365 admin to turn on <b>Authenticated SMTP</b> for your mailbox: <a href="https://admin.microsoft.com" target="_blank" rel="noopener">Microsoft 365 admin center</a> \u2192 Users \u2192 <b>Active users</b> \u2192 your account \u2192 <b>Mail</b> \u2192 <b>Manage email apps</b> \u2192 check <b>Authenticated SMTP</b> \u2192 Save, then allow 5\u201310 minutes.</li><li>If your account uses two-step verification, create an app password: go to <a href="https://mysignins.microsoft.com/security-info" target="_blank" rel="noopener">mysignins.microsoft.com/security-info</a> \u2192 <b>Add sign-in method</b> \u2192 <b>App password</b>, name it <b>iChat</b>, and copy it.</li><li>Enter the app password below \u2014 or your regular email password if you don\u2019t use two-step verification.</li></ol>',
+  webmail: '<b>Get your Webmail SMTP details:</b><ol><li>Log in to your webmail \u2014 usually <b>webmail.yourdomain.com</b>.</li><li>Click your account name or icon (top right) and choose <b>Connect Devices</b> (or \u201CConfigure Mail Client\u201D).</li><li>Under <b>Mail Client Manual Settings</b>, find the outgoing <b>SMTP server</b> \u2014 usually <b>mail.yourdomain.com</b> \u2014 and the <b>SMTP port</b> (usually <b>465</b>).</li><li>Enter the server and port below, along with the same password you use to log in to webmail.</li></ol>',
   sendgrid: '<b>Get your SendGrid credentials:</b><ol><li>Sign in at <a href="https://app.sendgrid.com" target="_blank" rel="noopener">app.sendgrid.com</a>.</li><li>Go to <b>Settings</b> → <b>API Keys</b> → <b>Create API Key</b> (Full Access, or Restricted with <b>Mail Send</b>).</li><li>Copy the key (starts with <b>SG.</b>) — that’s your password below.</li><li>Username: enter <b>apikey</b> unless your team uses a specific SMTP username.</li></ol>',
   other: '<b>Get your SMTP details:</b><ol><li>Find your provider\u2019s <b>SMTP settings</b> in their help docs or account settings — you\u2019ll need the <b>SMTP server</b> (e.g. smtp.yourprovider.com) and <b>port</b> (usually <b>587</b>).</li><li>Turn on <b>SMTP access</b> for your mailbox — look for a setting called \u201CSMTP authentication\u201D, \u201CAuthenticated SMTP\u201D, or \u201Callow external apps\u201D in your mail or security settings.</li><li>Microsoft 365 / Outlook: use server <b>smtp.office365.com</b>, port <b>587</b>, and turn on Authenticated SMTP in the <a href="https://admin.microsoft.com" target="_blank" rel="noopener">Microsoft 365 admin center</a> → Users → <b>Active users</b> → your account → <b>Mail</b> → <b>Manage email apps</b> → check <b>Authenticated SMTP</b> → Save.</li><li>Username: your full email address.</li><li>Password: generate an <b>app password</b> in your provider\u2019s security settings (most providers require one for outside apps like iChat) and enter it below. If your provider doesn\u2019t offer app passwords, use your regular email password.</li></ol>',
 };
@@ -1302,10 +1306,12 @@ const ICHAT_DELEGATION_INSTRUCTIONS = {
 };
 
 const ICHAT_FIELD_CONFIG = {
-  gmail:    { username: false, smtp: false, pwLabel: 'App Password' },
-  yahoo:    { username: false, smtp: false, pwLabel: 'App Password' },
-  sendgrid: { username: true,  smtp: false, pwLabel: 'Password (API Key)', usernameHint: 'Usually the literal word “apikey”.' },
-  other:    { username: true,  smtp: true,  pwLabel: 'Password', usernameHint: 'Usually your full email address.' },
+  gmail:    { pwLabel: 'App Password' },
+  yahoo:    { pwLabel: 'App Password' },
+  m365:     { pwLabel: 'Password' },
+  sendgrid: { username: true, pwLabel: 'Password (API Key)', usernameHint: 'Usually the literal word \u201Capikey\u201D.' },
+  webmail:  { server: true, pwLabel: 'Email Password' },
+  other:    { username: true, providerName: true, server: true, pwLabel: 'Password', usernameHint: 'Usually your full email address.' },
 };
 
 function cleanIChatDomain(raw) {
@@ -1338,7 +1344,9 @@ const Stage3 = ({ data, setData }) => {
           {[
             { v: 'gmail', l: 'Gmail' },
             { v: 'yahoo', l: 'Yahoo Mail' },
+            { v: 'm365', l: 'Microsoft 365 / Outlook' },
             { v: 'sendgrid', l: 'SendGrid' },
+            { v: 'webmail', l: 'Webmail (hosting email)' },
             { v: 'custom-domain', l: 'Custom domain email' },
             { v: 'other', l: 'Other' },
           ].map(o => {
@@ -1399,16 +1407,18 @@ const Stage3 = ({ data, setData }) => {
           <div className="tg-field tg-field-full">
             <div className="tg-steps" dangerouslySetInnerHTML={{__html: ICHAT_PW_INSTRUCTIONS[platform] || ICHAT_PW_INSTRUCTIONS.other}}/>
           </div>
-          {cfg.smtp && (
+          {cfg.providerName && (
+            <Field label="Provider Name" required>
+              <Input value={data.providerName} onChange={v=>setData({providerName:v})} placeholder="e.g. Zoho, Fastmail, GoDaddy Email"/>
+            </Field>
+          )}
+          {cfg.server && (
             <React.Fragment>
-              <Field label="Provider Name" required>
-                <Input value={data.providerName} onChange={v=>setData({providerName:v})} placeholder="e.g. Zoho, Fastmail, GoDaddy Email"/>
-              </Field>
               <Field label="SMTP Server" required>
-                <Input value={data.smtpServer} onChange={v=>setData({smtpServer:v})} placeholder="e.g. smtp.yourprovider.com"/>
+                <Input value={data.smtpServer} onChange={v=>setData({smtpServer:v})} placeholder="e.g. mail.yourdomain.com"/>
               </Field>
               <Field label="SMTP Port Number" required>
-                <Input value={data.smtpPort} onChange={v=>setData({smtpPort:v})} placeholder="587"/>
+                <Input value={data.smtpPort} onChange={v=>setData({smtpPort:v})} placeholder="465"/>
               </Field>
             </React.Fragment>
           )}
@@ -1418,7 +1428,7 @@ const Stage3 = ({ data, setData }) => {
               {cfg.usernameHint && <p style={{fontSize:'12px', color:'var(--ink-500)', margin:'5px 0 0'}}>{cfg.usernameHint}</p>}
             </Field>
           )}
-          <Field label={cfg.pwLabel} required full={!cfg.username && !cfg.smtp}>
+          <Field label={cfg.pwLabel} required full={!cfg.username && !cfg.server}>
             <Input type="password" value={data.appPassword} onChange={v=>setData({appPassword:v})} placeholder={cfg.pwLabel}/>
             <p style={{fontSize:'12px', color:'var(--ink-500)', margin:'5px 0 0', lineHeight:1.5}}>Encrypted in transit, and only used to connect your inbox to iChat.</p>
           </Field>
@@ -1772,9 +1782,11 @@ function generateApplicationPDF(data) {
   if (y > 200) { doc.addPage(); y = 20; }
   sectionHeader('iChat Email Setup');
   const platformLabels = {
-    gmail: 'Gmail', yahoo: 'Yahoo Mail', sendgrid: 'SendGrid',
-    'custom-domain': 'Custom domain email', other: 'Other',
+    gmail: 'Gmail', yahoo: 'Yahoo Mail', m365: 'Microsoft 365 / Outlook', sendgrid: 'SendGrid',
+    webmail: 'Webmail', 'custom-domain': 'Custom domain email', other: 'Other',
   };
+  const dispSmtpServer = data.emailPlatform === 'm365' ? 'smtp.office365.com' : data.smtpServer;
+  const dispSmtpPort = data.emailPlatform === 'm365' ? '587' : data.smtpPort;
   row('Send & Receive Email', data.mainEmail);
   row('Email Platform', platformLabels[data.emailPlatform] || data.emailPlatform);
   if (data.emailPlatform === 'custom-domain') {
@@ -1785,8 +1797,8 @@ function generateApplicationPDF(data) {
     row('Delegated to webdev@icans.ai', data.delegationOk ? 'Yes' : 'No');
   } else {
     row('Provider Name', data.providerName);
-    row('SMTP Server', data.smtpServer);
-    row('SMTP Port', data.smtpPort);
+    row('SMTP Server', dispSmtpServer);
+    row('SMTP Port', dispSmtpPort);
     row('Username', data.smtpUsername);
     doc.setFontSize(8);
     doc.setFont('helvetica', 'bold');
@@ -1794,7 +1806,7 @@ function generateApplicationPDF(data) {
     doc.text('SENSITIVE — DELETE THIS PDF AFTER SETUP', MARGIN, y);
     doc.setTextColor(26, 24, 48);
     y += 6;
-    const pwLabels = { gmail: 'App Password', yahoo: 'App Password', sendgrid: 'Password (API Key)' };
+    const pwLabels = { gmail: 'App Password', yahoo: 'App Password', m365: 'Password', webmail: 'Email Password', sendgrid: 'Password (API Key)' };
     row(pwLabels[data.emailPlatform] || 'Password', data.appPassword);
   }
 

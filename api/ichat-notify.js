@@ -4,7 +4,9 @@ const { jsPDF } = require('jspdf');
 const PLATFORM_LABELS = {
   gmail: 'Gmail',
   yahoo: 'Yahoo Mail',
+  m365: 'Microsoft 365 / Outlook',
   sendgrid: 'SendGrid',
+  webmail: 'Webmail',
   outlook: 'Outlook / Hotmail',
   icloud: 'iCloud Mail',
   'custom-domain': 'Custom domain email',
@@ -24,6 +26,7 @@ const PROVIDER_LABELS = {
 function pwLabel(platform) {
   if (platform === 'sendgrid') return 'Password (API Key)';
   if (platform === 'yahoo' || platform === 'gmail') return 'App Password';
+  if (platform === 'webmail') return 'Email Password';
   return 'Password';
 }
 
@@ -134,17 +137,14 @@ function buildEmailHtml(s) {
   const rowHtml = (label, value) =>
     `<div class="row"><span class="label">${label}</span><span class="value">${value || '<span class="empty">Not provided</span>'}</span></div>`;
 
-  const isOther = s.emailPlatform === 'other';
   const setupRows = s.usesCustomDomain
     ? rowHtml('Domain', escapeHtml(s.domain)) +
       rowHtml('iChat Subdomain', escapeHtml('ichat.' + s.domain)) +
       rowHtml('Domain Carrier', escapeHtml(PROVIDER_LABELS[s.domainProvider] || s.domainProvider)) +
       rowHtml('Delegated to webdev@icans.ai', s.delegationOk ? 'Yes' : 'No')
-    : (isOther
-        ? rowHtml('Provider Name', escapeHtml(s.providerName)) +
-          rowHtml('SMTP Server', escapeHtml(s.smtpServer)) +
-          rowHtml('SMTP Port', escapeHtml(s.smtpPort))
-        : '') +
+    : (s.providerName ? rowHtml('Provider Name', escapeHtml(s.providerName)) : '') +
+      (s.smtpServer ? rowHtml('SMTP Server', escapeHtml(s.smtpServer)) : '') +
+      (s.smtpPort ? rowHtml('SMTP Port', escapeHtml(s.smtpPort)) : '') +
       (s.smtpUsername ? rowHtml('Username', escapeHtml(s.smtpUsername)) : '') +
       `<div class="pw-block">
          <p class="pw-warn">SENSITIVE — needed to connect their inbox. Delete this email after setup.</p>

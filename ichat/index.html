@@ -316,7 +316,9 @@ form .section-title:first-child { margin-top: 0; }
           <div class="radio-grid" id="platformGrid">
             <label class="tg-rad"><input type="radio" name="emailPlatform" value="gmail"><span class="tg-rad-dot"></span>Gmail</label>
             <label class="tg-rad"><input type="radio" name="emailPlatform" value="yahoo"><span class="tg-rad-dot"></span>Yahoo Mail</label>
+            <label class="tg-rad"><input type="radio" name="emailPlatform" value="m365"><span class="tg-rad-dot"></span>Microsoft 365 / Outlook</label>
             <label class="tg-rad"><input type="radio" name="emailPlatform" value="sendgrid"><span class="tg-rad-dot"></span>SendGrid</label>
+            <label class="tg-rad"><input type="radio" name="emailPlatform" value="webmail"><span class="tg-rad-dot"></span>Webmail (hosting email)</label>
             <label class="tg-rad"><input type="radio" name="emailPlatform" value="custom-domain"><span class="tg-rad-dot"></span>Custom domain email</label>
             <label class="tg-rad"><input type="radio" name="emailPlatform" value="other"><span class="tg-rad-dot"></span>Other</label>
           </div>
@@ -398,16 +400,20 @@ form .section-title:first-child { margin-top: 0; }
   const PW_INSTRUCTIONS = {
     gmail: '<b>Gmail requires an app password</b> — your regular Gmail password won’t work. An app password is a 16-character code that lets iChat send email on your behalf:<ol><li>Go to your <a href="https://myaccount.google.com/security" target="_blank" rel="noopener">Google Account Security page</a> and scroll to <b>How you sign in to Google</b>. <b>2-Step Verification</b> must be turned on — if it isn’t, enable it first, then continue.</li><li>Open <b>2-Step Verification</b>, scroll all the way to the bottom, and select <b>App passwords</b>.</li><li>In the App name field, enter <b>iChat</b> and click <b>Create</b>.</li><li>Copy the 16-character password immediately (without extra spaces) — you won’t be able to view it again after closing the window.</li><li>Paste it below, and store it somewhere secure like a password manager.</li></ol>Using Google Workspace? If <b>App passwords</b> doesn’t appear even with 2-Step Verification on, your Workspace admin may have restricted it — ask them to enable it.',
     yahoo: '<b>Get your Yahoo app password:</b><ol><li>Go to <a href="https://login.yahoo.com/myaccount/security/" target="_blank" rel="noopener">Yahoo Account Security</a>.</li><li>Select <b>Generate app password</b> (or \u201CManage app passwords\u201D).</li><li>Choose <b>Other app</b>, name it <b>iChat</b>, and click Generate.</li><li>Copy the password and paste it below — your regular Yahoo password won\u2019t work.</li></ol>',
+    m365: '<b>Get your Microsoft 365 / Outlook sign-in ready:</b><ol><li>Ask your Microsoft 365 admin to turn on <b>Authenticated SMTP</b> for your mailbox: <a href="https://admin.microsoft.com" target="_blank" rel="noopener">Microsoft 365 admin center</a> \u2192 Users \u2192 <b>Active users</b> \u2192 your account \u2192 <b>Mail</b> \u2192 <b>Manage email apps</b> \u2192 check <b>Authenticated SMTP</b> \u2192 Save, then allow 5\u201310 minutes.</li><li>If your account uses two-step verification, create an app password: go to <a href="https://mysignins.microsoft.com/security-info" target="_blank" rel="noopener">mysignins.microsoft.com/security-info</a> \u2192 <b>Add sign-in method</b> \u2192 <b>App password</b>, name it <b>iChat</b>, and copy it.</li><li>Enter the app password below \u2014 or your regular email password if you don\u2019t use two-step verification.</li></ol>',
+    webmail: '<b>Get your Webmail SMTP details:</b><ol><li>Log in to your webmail \u2014 usually <b>webmail.yourdomain.com</b>.</li><li>Click your account name or icon (top right) and choose <b>Connect Devices</b> (or \u201CConfigure Mail Client\u201D).</li><li>Under <b>Mail Client Manual Settings</b>, find the outgoing <b>SMTP server</b> \u2014 usually <b>mail.yourdomain.com</b> \u2014 and the <b>SMTP port</b> (usually <b>465</b>).</li><li>Enter the server and port below, along with the same password you use to log in to webmail.</li></ol>',
     sendgrid: '<b>Get your SendGrid credentials:</b><ol><li>Sign in at <a href="https://app.sendgrid.com" target="_blank" rel="noopener">app.sendgrid.com</a>.</li><li>Go to <b>Settings</b> → <b>API Keys</b> → <b>Create API Key</b> (Full Access, or Restricted with <b>Mail Send</b>).</li><li>Copy the key (starts with <b>SG.</b>) — that’s your password below.</li><li>Username: enter <b>apikey</b> unless your team uses a specific SMTP username.</li></ol>',
     other: '<b>Get your SMTP details:</b><ol><li>Find your provider\u2019s <b>SMTP settings</b> in their help docs or account settings — you\u2019ll need the <b>SMTP server</b> (e.g. smtp.yourprovider.com) and <b>port</b> (usually <b>587</b>).</li><li>Turn on <b>SMTP access</b> for your mailbox — look for a setting called \u201CSMTP authentication\u201D, \u201CAuthenticated SMTP\u201D, or \u201Callow external apps\u201D in your mail or security settings.</li><li>Microsoft 365 / Outlook: use server <b>smtp.office365.com</b>, port <b>587</b>, and turn on Authenticated SMTP in the <a href="https://admin.microsoft.com" target="_blank" rel="noopener">Microsoft 365 admin center</a> → Users → <b>Active users</b> → your account → <b>Mail</b> → <b>Manage email apps</b> → check <b>Authenticated SMTP</b> → Save.</li><li>Username: your full email address.</li><li>Password: generate an <b>app password</b> in your provider\u2019s security settings (most providers require one for outside apps like iChat) and enter it below. If your provider doesn\u2019t offer app passwords, use your regular email password.</li></ol>',
   };
 
   // Which extra fields each platform needs, mirroring the iChat setup screens.
   const PLATFORM_FIELDS = {
-    gmail:    { username: false, smtp: false, pwLabel: 'App Password' },
-    yahoo:    { username: false, smtp: false, pwLabel: 'App Password' },
-    sendgrid: { username: true,  smtp: false, pwLabel: 'Password (API Key)', usernameHint: 'Usually the literal word “apikey”.', usernameRequired: false },
-    other:    { username: true,  smtp: true,  pwLabel: 'Password', usernameHint: 'Usually your full email address.', usernameRequired: false },
+    gmail:    { pwLabel: 'App Password' },
+    yahoo:    { pwLabel: 'App Password' },
+    m365:     { pwLabel: 'Password' },
+    sendgrid: { username: true, pwLabel: 'Password (API Key)', usernameHint: 'Usually the literal word \u201Capikey\u201D.' },
+    webmail:  { server: true, pwLabel: 'Email Password' },
+    other:    { username: true, providerName: true, server: true, pwLabel: 'Password', usernameHint: 'Usually your full email address.' },
   };
 
   const DELEGATE_EMAIL = '<span class="copyable">webdev@icans.ai</span>';
@@ -455,10 +461,10 @@ form .section-title:first-child { margin-top: 0; }
     if (v && !custom) {
       $('pwInstructions').innerHTML = PW_INSTRUCTIONS[v] || PW_INSTRUCTIONS.other;
       const f = PLATFORM_FIELDS[v] || PLATFORM_FIELDS.other;
-      $('providerNameField').classList.toggle('show', f.smtp);
-      $('smtpServerField').classList.toggle('show', f.smtp);
-      $('smtpPortField').classList.toggle('show', f.smtp);
-      $('smtpUsernameField').classList.toggle('show', f.username);
+      $('providerNameField').classList.toggle('show', !!f.providerName);
+      $('smtpServerField').classList.toggle('show', !!f.server);
+      $('smtpPortField').classList.toggle('show', !!f.server);
+      $('smtpUsernameField').classList.toggle('show', !!f.username);
       $('usernameHint').textContent = f.usernameHint || '';
       $('pwLabel').textContent = f.pwLabel;
     }
@@ -519,9 +525,9 @@ form .section-title:first-child { margin-top: 0; }
       delegationOk: custom ? $('delegationOk').checked : false,
       appPassword: custom ? '' : $('appPassword').value,
       smtpUsername: f && f.username ? $('smtpUsername').value.trim() : '',
-      providerName: f && f.smtp ? $('providerName').value.trim() : '',
-      smtpServer: f && f.smtp ? $('smtpServer').value.trim() : '',
-      smtpPort: f && f.smtp ? $('smtpPort').value.trim() : '',
+      providerName: f && f.providerName ? $('providerName').value.trim() : '',
+      smtpServer: f && f.server ? $('smtpServer').value.trim() : '',
+      smtpPort: f && f.server ? $('smtpPort').value.trim() : '',
     };
 
     if (!payload.planConfirmed) return showError('The iChat beta is only available to Plus plan subscribers — please confirm your plan.');
@@ -535,11 +541,11 @@ form .section-title:first-child { margin-top: 0; }
       if (!payload.domainProvider) return showError('Please select your domain carrier.');
       if (!payload.delegationOk) return showError('Please delegate access at your domain carrier using the steps shown, then check the box.');
     } else {
-      if (f.smtp) {
-        if (payload.providerName.length < 2) return showError('Please enter your email provider’s name.');
-        if (!payload.smtpServer.includes('.')) return showError('Please enter your SMTP server (e.g. smtp.yourprovider.com).');
+      if (f.providerName && payload.providerName.length < 2) return showError('Please enter your email provider\u2019s name.');
+      if (f.server) {
+        if (!payload.smtpServer.includes('.')) return showError('Please enter your SMTP server (e.g. mail.yourdomain.com).');
         const port = parseInt(payload.smtpPort, 10);
-        if (!port || port < 1 || port > 65535) return showError('Please enter your SMTP port number (usually 587).');
+        if (!port || port < 1 || port > 65535) return showError('Please enter your SMTP port number.');
       }
       if (payload.appPassword.length < 8) return showError('Please enter the password from the steps above.');
     }

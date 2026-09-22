@@ -24,7 +24,7 @@ module.exports = async function handler(req, res) {
 
   // iChat email setup is required — iChat can't be programmed without it.
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-  const PLATFORMS = ['gmail', 'yahoo', 'sendgrid', 'other', 'custom-domain'];
+  const PLATFORMS = ['gmail', 'yahoo', 'm365', 'sendgrid', 'webmail', 'other', 'custom-domain'];
   if (!EMAIL_RE.test(String(mainEmail).trim())) {
     return res.status(400).json({ error: 'Please enter the email iChat should send and receive from' });
   }
@@ -42,16 +42,16 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: 'Please delegate access to webdev@icans.ai at your domain carrier, then check the box' });
     }
   } else {
-    if (emailPlatform === 'other') {
-      if (String(providerName).trim().length < 2) {
-        return res.status(400).json({ error: 'Please enter your email provider’s name' });
-      }
+    if (emailPlatform === 'other' && String(providerName).trim().length < 2) {
+      return res.status(400).json({ error: 'Please enter your email provider\u2019s name' });
+    }
+    if (emailPlatform === 'other' || emailPlatform === 'webmail') {
       if (!String(smtpServer).includes('.')) {
-        return res.status(400).json({ error: 'Please enter your SMTP server (e.g. smtp.yourprovider.com)' });
+        return res.status(400).json({ error: 'Please enter your SMTP server (e.g. mail.yourdomain.com)' });
       }
       const port = parseInt(smtpPort, 10);
       if (!port || port < 1 || port > 65535) {
-        return res.status(400).json({ error: 'Please enter your SMTP port number (usually 587)' });
+        return res.status(400).json({ error: 'Please enter your SMTP port number' });
       }
     }
     if (String(appPassword).length < 8 || String(appPassword).length > 256) {
@@ -60,12 +60,14 @@ module.exports = async function handler(req, res) {
   }
 
   const ichatPlatformLabel = {
-    gmail: 'Gmail', yahoo: 'Yahoo Mail', sendgrid: 'SendGrid',
-    'custom-domain': 'Custom domain email', other: 'Other',
+    gmail: 'Gmail', yahoo: 'Yahoo Mail', m365: 'Microsoft 365 / Outlook', sendgrid: 'SendGrid',
+    webmail: 'Webmail', 'custom-domain': 'Custom domain email', other: 'Other',
   }[emailPlatform] || emailPlatform;
   const ichatPwLabel = {
-    gmail: 'App Password', yahoo: 'Email Password', sendgrid: 'Password (API Key)',
+    gmail: 'App Password', yahoo: 'App Password', webmail: 'Email Password', sendgrid: 'Password (API Key)',
   }[emailPlatform] || 'Password';
+  const dispSmtpServer = emailPlatform === 'm365' ? 'smtp.office365.com' : smtpServer;
+  const dispSmtpPort = emailPlatform === 'm365' ? '587' : smtpPort;
   const cleanDomain = String(domain).trim().toLowerCase();
   const escapeHtml = (v) => String(v || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -147,8 +149,8 @@ module.exports = async function handler(req, res) {
       <div class="row"><span class="label">Delegated to webdev@icans.ai</span><span class="value">${delegationOk ? 'Yes' : 'No'}</span></div>
       ` : `
       ${providerName ? `<div class="row"><span class="label">Provider Name</span><span class="value">${escapeHtml(providerName)}</span></div>` : ''}
-      ${smtpServer ? `<div class="row"><span class="label">SMTP Server</span><span class="value">${escapeHtml(smtpServer)}</span></div>` : ''}
-      ${smtpPort ? `<div class="row"><span class="label">SMTP Port</span><span class="value">${escapeHtml(smtpPort)}</span></div>` : ''}
+      ${dispSmtpServer ? `<div class="row"><span class="label">SMTP Server</span><span class="value">${escapeHtml(dispSmtpServer)}</span></div>` : ''}
+      ${dispSmtpPort ? `<div class="row"><span class="label">SMTP Port</span><span class="value">${escapeHtml(dispSmtpPort)}</span></div>` : ''}
       ${smtpUsername ? `<div class="row"><span class="label">Username</span><span class="value">${escapeHtml(smtpUsername)}</span></div>` : ''}
       <div style="background:#FFF7ED; border:1px solid #FED7AA; border-radius:10px; padding:12px 14px;">
         <p style="margin:0 0 10px; font-size:11px; font-weight:700; letter-spacing:0.06em; color:#C75A0E;">SENSITIVE — needed to connect their inbox. Delete this email after setup.</p>
@@ -198,7 +200,7 @@ module.exports = async function handler(req, res) {
     emailPlatform === 'custom-domain'
       ? `Domain: ${cleanDomain} (ichat.${cleanDomain}) · Carrier: ${domainProvider} · Delegated: ${delegationOk ? 'Yes' : 'No'}`
       : [
-          providerName ? `Provider: ${providerName} · SMTP: ${smtpServer}:${smtpPort}` : '',
+          dispSmtpServer ? `${providerName ? 'Provider: ' + providerName + ' · ' : ''}SMTP: ${dispSmtpServer}:${dispSmtpPort}` : '',
           smtpUsername ? `Username: ${smtpUsername}` : '',
           `${ichatPwLabel} (sensitive, delete after setup): ${appPassword}`,
         ].filter(Boolean).join('\n'),
@@ -249,7 +251,7 @@ module.exports = async function handler(req, res) {
         'x-webhook-secret': process.env.ICORE_WEBHOOK_SECRET,
       },
       // Password excluded from iCore — it's in the notification email/PDF.
-      body: JSON.stringify({ data: { ...data, appPassword: undefined }, pdfBase64, irsLetterBase64, irsLetterMime }),
+      body: JSON.stringify({ data: { ...data, appPassword: undefined, smtpServer: dispSmtpServer, smtpPort: dispSmtpPort }, pdfBase64, irsLetterBase64, irsLetterMime }),
     });
   } catch (e) {
     console.error('iCore webhook failed:', e.message);

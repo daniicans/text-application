@@ -120,13 +120,21 @@ h1 {
 .sub { font-size: 15px; line-height: 1.55; color: var(--text-muted); margin-bottom: 24px; }
 
 /* SEAT METER */
-.meter { margin-bottom: 26px; }
-.meter-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
-.meter-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--brand-deep); }
-.meter-count { font-size: 13px; font-weight: 700; color: var(--ink); }
-.meter-count.loading { color: var(--ink-300); font-weight: 500; }
-.bar { height: 10px; border-radius: 999px; background: var(--ink-100); overflow: hidden; }
-.bar .fill { height: 100%; width: 0%; border-radius: 999px; background: linear-gradient(90deg, var(--brand), var(--brand-deep)); transition: width 0.5s ease; }
+.counter {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--brand-50); border: 1px solid var(--brand-100);
+  border-radius: 12px; padding: 12px 16px; margin-bottom: 26px;
+}
+.counter .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--brand); flex-shrink: 0;
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+.counter span { font-size: 13px; font-weight: 600; color: var(--brand-deep); }
+.counter span b { font-weight: 700; }
+.counter.loading span { color: var(--ink-500); font-weight: 500; }
+.counter.loading .dot { background: var(--ink-300); }
 
 /* SECTIONS + FIELDS */
 .section-title {
@@ -269,14 +277,11 @@ form .section-title:first-child { margin-top: 0; }
     <div class="card">
       <span class="eyebrow">iChat · Private Beta · Plus Plan Only</span>
       <h1>Get early access to iChat</h1>
-      <p class="sub">Send and receive emails and two-way SMS from one place with iCANS iChat. 20 beta seats, exclusively for Plus plan subscribers.</p>
+      <p class="sub">Send and receive emails and two-way SMS from one place with iCANS iChat. Exclusively for Plus plan subscribers.</p>
 
-      <div class="meter">
-        <div class="meter-top">
-          <span class="meter-label">Beta Seats</span>
-          <span class="meter-count loading" id="meterCount">Loading…</span>
-        </div>
-        <div class="bar"><div class="fill" id="meterFill"></div></div>
+      <div class="counter loading" id="counter">
+        <div class="dot"></div>
+        <span id="counterText">Loading signups…</span>
       </div>
 
       <div class="msg error" id="errorMsg"></div>
@@ -379,19 +384,12 @@ form .section-title:first-child { margin-top: 0; }
       <div class="state success" id="successState">
         <div class="icon">🎉</div>
         <h2>You're in!</h2>
-        <p>Seat <span class="seatnum" id="seatNumber"></span> of 20 is yours.<br><span id="successNext"></span></p>
-      </div>
-
-      <div class="state full" id="fullState">
-        <div class="icon">🔒</div>
-        <h2>The beta is full</h2>
-        <p>All 20 seats are taken. Email <a href="mailto:onboarding@icans.ai">onboarding@icans.ai</a> to join the waitlist for the next round.</p>
+        <p>You're signup <span class="seatnum" id="seatNumber"></span>.<br><span id="successNext"></span></p>
       </div>
     </div>
   </main>
 
 <script>
-  const CAP = 20;
   const $ = (id) => document.getElementById(id);
   const form = $('signupForm');
   const submitBtn = $('submitBtn');
@@ -423,30 +421,23 @@ form .section-title:first-child { margin-top: 0; }
     other: '<b>Delegate access at your domain carrier:</b><ol><li>Sign in to your domain provider’s dashboard.</li><li>Look for <b>Delegate Access</b>, <b>Share Access</b>, <b>Members</b>, or <b>Users</b> in account settings.</li><li>Invite ' + DELEGATE_EMAIL + ' with DNS / domain management access.</li></ol>If you can’t find it, sign up anyway and we’ll walk you through it by email.',
   };
 
-  // --- Seat meter ---
-  function renderMeter(confirmed) {
-    $('meterFill').style.width = (confirmed / CAP * 100) + '%';
-    const mc = $('meterCount');
-    mc.classList.remove('loading');
-    mc.textContent = confirmed + ' of ' + CAP + ' taken';
-  }
-  function showFull() {
-    form.style.display = 'none';
-    errorMsg.classList.remove('show');
-    $('successState').style.display = 'none';
-    $('fullState').style.display = 'block';
+  // --- Signup counter ---
+  function renderCount(confirmed) {
+    const c = $('counter');
+    c.classList.remove('loading');
+    $('counterText').innerHTML = confirmed === 1
+      ? '<b>1</b> business has signed up'
+      : '<b>' + confirmed + '</b> businesses have signed up';
   }
   async function loadSeats() {
     try {
       const r = await fetch('/api/ichat-seats');
       if (!r.ok) throw new Error('bad status');
       const j = await r.json();
-      renderMeter(j.confirmed);
-      if (!j.open) showFull();
+      renderCount(j.confirmed);
     } catch (e) {
-      const mc = $('meterCount');
-      mc.classList.remove('loading');
-      mc.textContent = 'Couldn’t load seats';
+      $('counter').classList.remove('loading');
+      $('counterText').textContent = 'Couldn’t load signup count';
     }
   }
   loadSeats();
@@ -565,20 +556,19 @@ form .section-title:first-child { margin-top: 0; }
       const j = await r.json().catch(() => ({}));
 
       if (r.ok && j.ok) {
-        renderMeter(CAP - j.seatsRemaining);
         form.style.display = 'none';
-        $('seatNumber').textContent = j.seatNumber;
+        $('seatNumber').textContent = '#' + j.seatNumber;
         $('successNext').textContent = custom
           ? 'We’ll confirm your delegation and set up ichat.' + payload.domain + ', then email you when your beta access is ready.'
           : 'We’ll email you when your iChat beta access is ready.';
         $('successState').style.display = 'block';
+        loadSeats();
         return;
       }
-      if (r.status === 409 && j.error === 'full') { renderMeter(CAP); showFull(); return; }
       if (r.status === 409 && j.error === 'duplicate') {
         showError('This email is already signed up for the beta.');
       } else {
-        showError(j.message || (typeof j.error === 'string' && j.error !== 'full' && j.error) || 'Something went wrong. Please try again.');
+        showError(j.message || (typeof j.error === 'string' && j.error) || 'Something went wrong. Please try again.');
       }
     } catch (err) {
       showError('Network error. Please try again.');

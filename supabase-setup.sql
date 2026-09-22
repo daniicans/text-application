@@ -1,7 +1,7 @@
 -- ============================================================
 -- iChat Beta Signup — Supabase setup (fresh install)
 -- Run this once in the Supabase dashboard → SQL Editor.
--- 20-seat cap, Plus-plan-only beta. The API routes use the
+-- Uncapped signups, Plus-plan-only beta. The API routes use the
 -- service-role key, so RLS is enabled with no public policies.
 -- ============================================================
 
@@ -57,33 +57,25 @@ alter table public.ichat_beta_signups enable row level security;
 alter table public.ichat_beta_app_passwords enable row level security;
 
 -- ------------------------------------------------------------
--- RPC: reserve_ichat_seat — atomically reserves one of the 20
--- beta seats. Raises BETA_FULL when all seats are taken and
--- ALREADY_SIGNED_UP when the sending email already holds one.
+-- RPC: reserve_ichat_seat — atomically assigns the next signup
+-- number (uncapped). Raises ALREADY_SIGNED_UP when the sending
+-- email already holds one.
 -- ------------------------------------------------------------
 drop function if exists public.reserve_ichat_seat(text, text, text);
 drop function if exists public.reserve_ichat_seat(jsonb);
 
 create function public.reserve_ichat_seat(p_data jsonb)
-returns table (signup_id uuid, seat_number integer, seats_remaining integer)
+returns table (signup_id uuid, seat_number integer)
 language plpgsql
 security definer
 set search_path = public
 as $$
 declare
-  v_confirmed integer;
-  v_seat      integer;
-  v_id        uuid;
+  v_seat integer;
+  v_id   uuid;
 begin
   -- Serialize concurrent reservations for the duration of this transaction.
   perform pg_advisory_xact_lock(hashtext('ichat_beta_seats'));
-
-  select count(*) into v_confirmed
-    from ichat_beta_signups where status = 'confirmed';
-
-  if v_confirmed >= 20 then
-    raise exception 'BETA_FULL';
-  end if;
 
   if exists (
     select 1 from ichat_beta_signups
@@ -94,6 +86,7 @@ begin
 
   select coalesce(max(s.seat_number), 0) + 1 into v_seat
     from ichat_beta_signups s;
+
 
   insert into ichat_beta_signups (
     full_name, company_name, email, phone, main_email, email_platform,
@@ -121,7 +114,7 @@ begin
   )
   returning id into v_id;
 
-  return query select v_id, v_seat, 20 - (v_confirmed + 1);
+  return query select v_id, v_seat;
 end;
 $$;
 

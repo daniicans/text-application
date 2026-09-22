@@ -79,8 +79,8 @@ function generateSignupPDF(s) {
     y += 5;
   };
 
-  sectionHeader('Beta Seat');
-  row('Seat Number', `${s.seatNumber} of 20`);
+  sectionHeader('Beta Signup');
+  row('Signup Number', `#${s.seatNumber}`);
   row('Plus Plan Confirmed', s.planConfirmed ? 'Yes (verify against account)' : 'No');
 
   y += 4;
@@ -185,8 +185,8 @@ function buildEmailHtml(s) {
   </div>
   <div class="body">
     <div class="section">
-      <p class="section-title">Beta Seat</p>
-      ${rowHtml('Seat', `<span class="seat-badge">Seat ${s.seatNumber} of 20</span>`)}
+      <p class="section-title">Beta Signup</p>
+      ${rowHtml('Signup', `<span class="seat-badge">Signup #${s.seatNumber}</span>`)}
       ${rowHtml('Plus Plan Confirmed', s.planConfirmed ? 'Yes — verify against account' : 'No')}
     </div>
     <div class="section">
@@ -242,11 +242,11 @@ async function notifySignup(s) {
       from: `"icans Applications" <${process.env.GMAIL_USER}>`,
       replyTo: s.email || undefined,
       to: process.env.TO_EMAIL || 'onboarding@icans.ai',
-      subject: `New iChat Beta Signup — ${s.companyName} · Seat ${s.seatNumber}/20`,
+      subject: `New iChat Beta Signup — ${s.companyName} · Signup #${s.seatNumber}`,
       html: buildEmailHtml(s),
       text: [
         `New iChat Beta Signup — ${s.companyName}`,
-        `Seat: ${s.seatNumber} of 20`,
+        `Signup: #${s.seatNumber}`,
         `Plus plan confirmed: ${s.planConfirmed ? 'Yes' : 'No'}`,
         `Name: ${s.fullName}`,
         `Account email: ${s.email}`,

@@ -1092,11 +1092,53 @@ const Select = ({ value, onChange, children }) => (
     onChange={e => onChange(e.target.value)}>{children}</select>
 );
 
+// Vercel rejects request bodies over ~4.5MB, so uploads must stay well under
+// that after base64 encoding (which adds ~33%).
+const MAX_UPLOAD_BYTES = 3 * 1024 * 1024;
+const MAX_IMAGE_DIMENSION = 2000;
+
 const FileDrop = ({ value, onChange, onFileData }) => {
   const ref = React.useRef();
   const handleFile = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    // Phone photos are routinely 5-10MB — downscale images in the browser
+    // so the submission stays under the request-size limit.
+    if (file.type.startsWith('image/')) {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const scale = Math.min(1, MAX_IMAGE_DIMENSION / Math.max(img.width, img.height));
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.max(1, Math.round(img.width * scale));
+          canvas.height = Math.max(1, Math.round(img.height * scale));
+          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          onChange(file.name.replace(/\.[^.]+$/, '') + '.jpg');
+          onFileData(dataUrl.split(',')[1], 'image/jpeg');
+        } catch (err) {
+          alert('We couldn’t read that image. Please try a different file.');
+        } finally {
+          URL.revokeObjectURL(url);
+        }
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        alert('We couldn’t read that image. Please try a different file.');
+      };
+      img.src = url;
+      e.target.value = '';
+      return;
+    }
+
+    if (file.size > MAX_UPLOAD_BYTES) {
+      alert('That file is too large to upload. Please choose a file under 3 MB — a photo or a compressed PDF of your IRS letter works great.');
+      e.target.value = '';
+      return;
+    }
+
     onChange(file.name);
     const reader = new FileReader();
     reader.onload = () => {
@@ -1856,6 +1898,9 @@ const VariationC = ({ initialStage = 0, initialData = null }) => {
         body: JSON.stringify({ data, pdfBase64, irsLetterBase64: data.irsLetterBase64 || null, irsLetterMime: data.irsLetterMime || null }),
       });
       if (!res.ok) {
+        if (res.status === 413) {
+          throw new Error('Your IRS letter upload is too large to send. Go back to Step 1, remove it, and upload a smaller file (under 3 MB), then submit again.');
+        }
         const err = await res.json().catch(() => ({}));
         throw new Error(err.error || `Server error ${res.status}`);
       }

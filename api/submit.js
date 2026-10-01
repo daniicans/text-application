@@ -77,6 +77,41 @@ module.exports = async function handler(req, res) {
       ? 'Plus — $199/month · 2,000 Messages'
       : plan || '—';
 
+  // Push to iCore first so the notification email can report whether the
+  // application was actually recorded (marked sms_application_received).
+  let icoreOk = false;
+  let icoreMsg = '';
+  try {
+    const icoreRes = await fetch('https://icore.icans.ai/api/webhooks/texting-application', {
+      method: 'POST',
+      signal: AbortSignal.timeout(9000),
+      headers: {
+        'Content-Type': 'application/json',
+        'x-webhook-secret': process.env.ICORE_WEBHOOK_SECRET || '',
+      },
+      // Password excluded from iCore — it's in the notification email/PDF.
+      body: JSON.stringify({ data: { ...data, appPassword: undefined, smtpServer: dispSmtpServer, smtpPort: dispSmtpPort }, pdfBase64, irsLetterBase64, irsLetterMime }),
+    });
+    const icoreData = await icoreRes.json().catch(() => ({}));
+    if (icoreRes.ok && icoreData.success) {
+      icoreOk = true;
+      icoreMsg = 'Recorded — application marked as received on the account.';
+    } else {
+      icoreMsg = icoreData.error ? icoreData.error : `HTTP ${icoreRes.status}`;
+      console.error('iCore webhook not recorded:', icoreMsg);
+    }
+  } catch (e) {
+    icoreMsg = e.message;
+    console.error('iCore webhook failed:', e.message);
+  }
+
+  const icoreHtml = icoreOk
+    ? `<div class="row"><span class="label">iCore</span><span class="value" style="color:#2E9039; font-weight:700;">✓ ${icoreMsg}</span></div>`
+    : `<div style="background:#FEF2F2; border:1px solid #FCA5A5; border-radius:10px; padding:12px 14px;">
+         <p style="margin:0; font-size:12px; font-weight:700; color:#B91C1C;">NOT RECORDED IN iCORE — mark this application manually.</p>
+         <p style="margin:6px 0 0; font-size:12px; color:#B91C1C;">Reason: ${icoreMsg}</p>
+       </div>`;
+
   const subject = `New iChat Application - ${businessName} & ${firstName} ${lastName}`.trim();
 
   const html = `
@@ -158,6 +193,11 @@ module.exports = async function handler(req, res) {
       </div>
       `}
     </div>
+
+    <div class="section">
+      <p class="section-title">iCore Status</p>
+      ${icoreHtml}
+    </div>
   </div>
   <div class="footer">
     icans.ai &nbsp;·&nbsp; iChat Application &nbsp;·&nbsp; Confidential — for icans staff only
@@ -204,6 +244,9 @@ module.exports = async function handler(req, res) {
           smtpUsername ? `Username: ${smtpUsername}` : '',
           `${ichatPwLabel} (sensitive, delete after setup): ${appPassword}`,
         ].filter(Boolean).join('\n'),
+    '',
+    '── iCore ─────────────────────',
+    icoreOk ? `Recorded: ${icoreMsg}` : `NOT RECORDED — mark manually. Reason: ${icoreMsg}`,
   ].join('\n');
 
   const transporter = nodemailer.createTransport({
@@ -236,26 +279,12 @@ module.exports = async function handler(req, res) {
   await transporter.sendMail({
     from: `"icans Applications" <${process.env.GMAIL_USER}>`,
     replyTo: accountEmail || undefined,
-    to: process.env.TO_EMAIL || 'onboarding@icans.ai',
+    to: [process.env.TO_EMAIL || 'onboarding@icans.ai', 'alex@icans.ai'],
     subject,
     html,
     text,
     attachments,
   });
-
-  try {
-    await fetch('https://icore.icans.ai/api/webhooks/texting-application', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-webhook-secret': process.env.ICORE_WEBHOOK_SECRET,
-      },
-      // Password excluded from iCore — it's in the notification email/PDF.
-      body: JSON.stringify({ data: { ...data, appPassword: undefined, smtpServer: dispSmtpServer, smtpPort: dispSmtpPort }, pdfBase64, irsLetterBase64, irsLetterMime }),
-    });
-  } catch (e) {
-    console.error('iCore webhook failed:', e.message);
-  }
 
   return res.status(200).json({ success: true });
 };

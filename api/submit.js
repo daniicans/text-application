@@ -17,10 +17,16 @@ module.exports = async function handler(req, res) {
     phone = '', accountEmail = '',
     areaCode = '', address = '', city = '', state = '', country = '', postal = '',
     plan = '',
-    mainEmail = '', emailPlatform = '', appPassword = '',
+    mainEmail = '', emailPlatform = '', appPassword: rawAppPassword = '',
     smtpUsername = '', providerName = '', smtpServer = '', smtpPort = '',
     domain = '', domainProvider = '', delegationOk = false,
   } = data;
+
+  // Gmail app passwords are displayed with spaces; strip them so the stored
+  // credential works as-is.
+  const appPassword = emailPlatform === 'gmail'
+    ? String(rawAppPassword).replace(/\s+/g, '')
+    : String(rawAppPassword);
 
   // iChat email setup is required — iChat can't be programmed without it.
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;

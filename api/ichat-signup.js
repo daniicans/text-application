@@ -46,7 +46,12 @@ module.exports = async function handler(req, res) {
   const domainProvider = String(b.domainProvider || '').trim();
   const delegationOk = b.delegationOk === true;
   const planConfirmed = b.planConfirmed === true;
-  const appPassword = String(b.appPassword || '');
+  // Gmail app passwords are displayed with spaces; strip them so the stored
+  // credential works as-is.
+  const rawAppPassword = String(b.appPassword || '');
+  const appPassword = String(b.emailPlatform || '').toLowerCase() === 'gmail'
+    ? rawAppPassword.replace(/\s+/g, '')
+    : rawAppPassword;
   const smtpUsername = String(b.smtpUsername || '').trim();
   const providerName = String(b.providerName || '').trim();
   const smtpServer = String(b.smtpServer || '').trim().toLowerCase();

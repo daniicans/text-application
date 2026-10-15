@@ -231,7 +231,12 @@ a { color: inherit; text-decoration: none; }
   font-size: 12.5px; color: var(--ink-700); line-height: 1.65;
 }
 .tg-steps b { color: var(--ink); }
-.tg-steps ol { padding-left: 18px; margin: 6px 0 0; }
+.tg-steps ol, .tg-steps ul { padding-left: 18px; margin: 6px 0 0; }
+.tg-steps .must-read {
+  display: block; color: var(--danger); font-weight: 800;
+  font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase;
+  margin-bottom: 8px;
+}
 .tg-steps li { margin-bottom: 3px; }
 .tg-steps a { color: var(--brand-deep); font-weight: 600; text-decoration: underline; }
 .tg-notice {
@@ -1327,8 +1332,10 @@ const Stage2 = ({ data, setData }) => (
 // ============================================================
 // STAGE 3 — iChat Email Setup
 // ============================================================
+const ICHAT_MUST_READ = '<span class="must-read">\u26A0 Must read \u2014 follow every step exactly. iChat can\u2019t be set up without the right information.</span>';
+
 const ICHAT_PW_INSTRUCTIONS = {
-  gmail: '<b>Gmail requires an app password</b> — your regular Gmail password won’t work. An app password is a 16-character code that lets iChat send email on your behalf:<ol><li>Go to your <a href="https://myaccount.google.com/security" target="_blank" rel="noopener">Google Account Security page</a> and scroll to <b>How you sign in to Google</b>. <b>2-Step Verification</b> must be turned on — if it isn’t, enable it first, then continue.</li><li>Open <b>2-Step Verification</b>, scroll all the way to the bottom, and select <b>App passwords</b>.</li><li>In the App name field, enter <b>iChat</b> and click <b>Create</b>.</li><li>Copy the 16-character password immediately (without extra spaces) — you won’t be able to view it again after closing the window.</li><li>Paste it below, and store it somewhere secure like a password manager.</li></ol>Using Google Workspace? If <b>App passwords</b> doesn’t appear even with 2-Step Verification on, your Workspace admin may have restricted it — ask them to enable it.',
+  gmail: '<b>Gmail requires an app password.</b> Your regular Gmail password won\u2019t work. An app password is a 16-character code that lets iChat send email for you.<ol><li>Make sure <b>2-Step Verification</b> is on: <a href="https://myaccount.google.com/signinoptions/twosv" target="_blank" rel="noopener">myaccount.google.com/signinoptions/twosv</a>. You need a phone number or authenticator app as one of your methods (a security key alone won\u2019t work).</li><li>Go directly to <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener">myaccount.google.com/apppasswords</a>.</li><li>Name it <b>iChat</b> and click <b>Create</b>.</li><li>Copy the 16-character code right away (spaces are fine, we strip them). You can\u2019t view it again.</li><li>Paste it below.</li></ol><b>Don\u2019t see the App passwords page?</b><ul><li>Sign out and back in, wait a few minutes, and try the link again.</li><li>Check that 2-Step Verification uses a phone or authenticator app, not only a security key.</li><li>If you use a work or school Google account (Google Workspace), your admin has to allow app passwords \u2014 ask them to enable it, or use a personal Gmail address instead.</li><li>Still stuck? <a href="mailto:onboarding@icans.ai">Contact support</a> and we\u2019ll help.</li></ul>',
   yahoo: '<b>Get your Yahoo app password:</b><ol><li>Go to <a href="https://login.yahoo.com/myaccount/security/" target="_blank" rel="noopener">Yahoo Account Security</a>.</li><li>Select <b>Generate app password</b> (or \u201CManage app passwords\u201D).</li><li>Choose <b>Other app</b>, name it <b>iChat</b>, and click Generate.</li><li>Copy the password and paste it below — your regular Yahoo password won\u2019t work.</li></ol>',
   m365: '<b>Set up your Microsoft 365 / Outlook account:</b><ol><li><b>Turn on Authenticated SMTP for your mailbox.</b> Sign in at <a href="https://admin.microsoft.com" target="_blank" rel="noopener">admin.microsoft.com</a> \u2192 Users \u2192 <b>Active users</b> \u2192 click your account \u2192 <b>Mail</b> tab \u2192 <b>Manage email apps</b> \u2192 check <b>Authenticated SMTP</b> \u2192 Save. Wait ~15 minutes.</li><li><b>Turn off Security Defaults.</b> Go to <a href="https://entra.microsoft.com" target="_blank" rel="noopener">entra.microsoft.com</a> \u2192 <b>Overview</b> \u2192 <b>Properties</b> \u2192 <b>Manage security defaults</b> \u2192 set to <b>Off</b> \u2192 Save.</li><li><b>Create your app password.</b> Go to <a href="https://mysignins.microsoft.com/security-info" target="_blank" rel="noopener">mysignins.microsoft.com/security-info</a> \u2192 <b>Add sign-in method</b> \u2192 <b>App password</b> \u2192 name it <b>iCANS</b> \u2192 copy the password shown. (If \u201CApp password\u201D does not appear as an option, step 2 hasn\u2019t taken effect yet \u2014 wait and refresh, or confirm Security Defaults is off.)</li><li>Enter that app password below \u2014 <b>not your normal login password</b>.</li></ol>',
   webmail: '<b>Get your Webmail SMTP details:</b><ol><li>Log in to your webmail \u2014 usually <b>webmail.yourdomain.com</b>.</li><li>Click your account name or icon (top right) and choose <b>Connect Devices</b> (or \u201CConfigure Mail Client\u201D).</li><li>Under <b>Mail Client Manual Settings</b>, find the outgoing <b>SMTP server</b> \u2014 usually <b>mail.yourdomain.com</b> \u2014 and the <b>SMTP port</b> (usually <b>465</b>).</li><li>Enter the server and port below, along with the same password you use to log in to webmail.</li></ol>',
@@ -1430,7 +1437,7 @@ const Stage3 = ({ data, setData }) => {
           </Field>
           {data.domainProvider && (
             <div className="tg-field tg-field-full">
-              <div className="tg-steps" dangerouslySetInnerHTML={{__html: ICHAT_DELEGATION_INSTRUCTIONS[data.domainProvider] || ICHAT_DELEGATION_INSTRUCTIONS.other}}/>
+              <div className="tg-steps" dangerouslySetInnerHTML={{__html: ICHAT_MUST_READ + (ICHAT_DELEGATION_INSTRUCTIONS[data.domainProvider] || ICHAT_DELEGATION_INSTRUCTIONS.other)}}/>
             </div>
           )}
           {data.domainProvider && (
@@ -1447,7 +1454,7 @@ const Stage3 = ({ data, setData }) => {
       {cfg && (
         <React.Fragment>
           <div className="tg-field tg-field-full">
-            <div className="tg-steps" dangerouslySetInnerHTML={{__html: ICHAT_PW_INSTRUCTIONS[platform] || ICHAT_PW_INSTRUCTIONS.other}}/>
+            <div className="tg-steps" dangerouslySetInnerHTML={{__html: ICHAT_MUST_READ + (ICHAT_PW_INSTRUCTIONS[platform] || ICHAT_PW_INSTRUCTIONS.other)}}/>
           </div>
           {cfg.providerName && (
             <Field label="Provider Name" required>
@@ -1888,14 +1895,17 @@ const VariationC = ({ initialStage = 0, initialData = null }) => {
     setSubmitting(true);
     setSubmitError(null);
     try {
+      const sendData = data.emailPlatform === 'gmail'
+        ? { ...data, appPassword: (data.appPassword || '').replace(/\s+/g, '') }
+        : data;
       let pdfBase64 = null;
       if (window.jspdf) {
-        try { pdfBase64 = generateApplicationPDF(data); } catch (e) { /* non-fatal */ }
+        try { pdfBase64 = generateApplicationPDF(sendData); } catch (e) { /* non-fatal */ }
       }
       const res = await fetch('/api/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data, pdfBase64, irsLetterBase64: data.irsLetterBase64 || null, irsLetterMime: data.irsLetterMime || null }),
+        body: JSON.stringify({ data: sendData, pdfBase64, irsLetterBase64: data.irsLetterBase64 || null, irsLetterMime: data.irsLetterMime || null }),
       });
       if (!res.ok) {
         if (res.status === 413) {

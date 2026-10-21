@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>iChat Beta — icans</title>
+<title>iChat — icans</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -258,15 +258,15 @@ form .section-title:first-child { margin-top: 0; }
       <span class="tg-brand-name">icans</span>
     </div>
     <div class="tg-divider"></div>
-    <span class="tg-product">iChat Beta</span>
+    <span class="tg-product">iChat</span>
     <div class="tg-hdr-spacer"></div>
     <a class="tg-hdr-help" href="mailto:onboarding@icans.ai">Help</a>
   </header>
 
   <main class="stage">
     <div class="card">
-      <span class="eyebrow">iChat · Private Beta · Plus Plan Only</span>
-      <h1>Get early access to iChat</h1>
+      <span class="eyebrow">iChat · Plus Plan Only</span>
+      <h1>Sign up for iChat</h1>
       <p class="sub">Send and receive emails and two-way SMS from one place with iCANS iChat. Exclusively for Plus plan subscribers.</p>
 
       <div class="msg error" id="errorMsg"></div>
@@ -275,7 +275,7 @@ form .section-title:first-child { margin-top: 0; }
         <p class="section-title">Your Account</p>
         <label class="check">
           <input type="checkbox" id="planConfirmed">
-          <span>I'm an iCANS <b>Plus plan</b> subscriber. The beta is Plus-only — we'll verify against your account before onboarding.</span>
+          <span>I'm an iCANS <b>Plus plan</b> subscriber. iChat is Plus-only — we'll verify against your account before onboarding.</span>
         </label>
         <div class="field">
           <label class="tg-lbl" for="fullName">Full Name <span class="req">*</span></label>
@@ -365,7 +365,7 @@ form .section-title:first-child { margin-top: 0; }
           </div>
         </div>
 
-        <button type="submit" class="tg-btn-primary" id="submitBtn">Reserve My Beta Seat</button>
+        <button type="submit" class="tg-btn-primary" id="submitBtn">Sign Up for iChat</button>
       </form>
 
       <div class="state success" id="successState">
@@ -497,7 +497,7 @@ form .section-title:first-child { margin-top: 0; }
       smtpPort: f && f.server ? $('smtpPort').value.trim() : '',
     };
 
-    if (!payload.planConfirmed) return showError('The iChat beta is only available to Plus plan subscribers — please confirm your plan.');
+    if (!payload.planConfirmed) return showError('iChat is only available to Plus plan subscribers — please confirm your plan.');
     if (payload.fullName.length < 2) return showError('Please enter your full name.');
     if (payload.companyName.length < 2) return showError('Please enter your company name.');
     if (!EMAIL_RE.test(payload.email)) return showError('Please enter a valid account email address.');
@@ -532,13 +532,13 @@ form .section-title:first-child { margin-top: 0; }
         form.style.display = 'none';
         $('seatNumber').textContent = '#' + j.seatNumber;
         $('successNext').textContent = custom
-          ? 'We’ll confirm your delegation and set up ichat.' + payload.domain + ', then email you when your beta access is ready.'
-          : 'We’ll email you when your iChat beta access is ready.';
+          ? 'We’ll confirm your delegation and set up ichat.' + payload.domain + ', then email you when your iChat access is ready.'
+          : 'We’ll email you when your iChat access is ready.';
         $('successState').style.display = 'block';
         return;
       }
       if (r.status === 409 && j.error === 'duplicate') {
-        showError('This email is already signed up for the beta.');
+        showError('This email is already signed up.');
       } else {
         showError(j.message || (typeof j.error === 'string' && j.error) || 'Something went wrong. Please try again.');
       }
@@ -546,7 +546,7 @@ form .section-title:first-child { margin-top: 0; }
       showError('Network error. Please try again.');
     } finally {
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Reserve My Beta Seat';
+      submitBtn.textContent = 'Sign Up for iChat';
     }
   });
 </script>

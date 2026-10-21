@@ -43,7 +43,7 @@ function generateSignupPDF(s) {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
-  doc.text('icans · iChat Beta Signup', MARGIN, 17);
+  doc.text('icans · iChat Signup', MARGIN, 17);
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.text('Submitted ' + new Date().toLocaleString(), W - MARGIN, 17, { align: 'right' });
@@ -81,7 +81,7 @@ function generateSignupPDF(s) {
     y += 5;
   };
 
-  sectionHeader('Beta Signup');
+  sectionHeader('Signup');
   row('Plus Plan Confirmed', s.planConfirmed ? 'Yes (verify against account)' : 'No');
 
   y += 4;
@@ -123,7 +123,7 @@ function generateSignupPDF(s) {
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(110, 106, 147);
-  doc.text('icans.ai  ·  iChat Beta  ·  Confidential — for icans staff only', MARGIN, pageH - 8);
+  doc.text('icans.ai  ·  iChat  ·  Confidential — for icans staff only', MARGIN, pageH - 8);
 
   return doc.output('datauristring').split(',')[1];
 }
@@ -178,12 +178,12 @@ function buildEmailHtml(s) {
 <body>
 <div class="wrapper">
   <div class="header">
-    <h1>New iChat Beta Signup</h1>
+    <h1>New iChat Signup</h1>
     <p>Submitted ${new Date().toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'short' })}</p>
   </div>
   <div class="body">
     <div class="section">
-      <p class="section-title">Beta Signup</p>
+      <p class="section-title">Signup</p>
       ${rowHtml('Plus Plan Confirmed', s.planConfirmed ? 'Yes — verify against account' : 'No')}
     </div>
     <div class="section">
@@ -200,7 +200,7 @@ function buildEmailHtml(s) {
     </div>
   </div>
   <div class="footer">
-    icans.ai &nbsp;·&nbsp; iChat Beta &nbsp;·&nbsp; Confidential — for icans staff only<br>PDF signup sheet attached.
+    icans.ai &nbsp;·&nbsp; iChat &nbsp;·&nbsp; Confidential — for icans staff only<br>PDF signup sheet attached.
   </div>
 </div>
 </body>
@@ -239,10 +239,10 @@ async function notifySignup(s) {
       from: `"icans Applications" <${process.env.GMAIL_USER}>`,
       replyTo: s.email || undefined,
       to: process.env.TO_EMAIL || 'onboarding@icans.ai',
-      subject: `New iChat Beta Signup — ${s.companyName}`,
+      subject: `New iChat Signup — ${s.companyName}`,
       html: buildEmailHtml(s),
       text: [
-        `New iChat Beta Signup — ${s.companyName}`,
+        `New iChat Signup — ${s.companyName}`,
         `Plus plan confirmed: ${s.planConfirmed ? 'Yes' : 'No'}`,
         `Name: ${s.fullName}`,
         `Account email: ${s.email}`,
@@ -259,7 +259,7 @@ async function notifySignup(s) {
       ].join('\n'),
       attachments: pdfBase64
         ? [{
-            filename: `iChatBeta-${safeName}.pdf`,
+            filename: `iChat-${safeName}.pdf`,
             content: Buffer.from(pdfBase64, 'base64'),
             contentType: 'application/pdf',
           }]

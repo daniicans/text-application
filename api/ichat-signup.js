@@ -58,7 +58,7 @@ module.exports = async function handler(req, res) {
   const smtpPort = String(b.smtpPort || '').trim();
 
   if (!planConfirmed) {
-    return res.status(400).json({ error: 'The iChat beta is only available to Plus plan subscribers' });
+    return res.status(400).json({ error: 'iChat is only available to Plus plan subscribers' });
   }
   if (fullName.length < 2 || fullName.length > 120) {
     return res.status(400).json({ error: 'Please enter your full name' });

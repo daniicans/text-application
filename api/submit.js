@@ -19,7 +19,7 @@ module.exports = async function handler(req, res) {
     plan = '',
     mainEmail = '', emailPlatform = '', appPassword: rawAppPassword = '',
     smtpUsername = '', providerName = '', smtpServer = '', smtpPort = '',
-    domain = '', domainProvider = '', delegationOk = false,
+    domain = '', domainProvider = '', carrierName = '', delegationOk = false,
   } = data;
 
   // Gmail app passwords are displayed with spaces; strip them so the stored
@@ -43,6 +43,9 @@ module.exports = async function handler(req, res) {
     }
     if (!domainProvider) {
       return res.status(400).json({ error: 'Please select your domain carrier' });
+    }
+    if (String(domainProvider).toLowerCase() === 'other' && String(carrierName).trim().length < 2) {
+      return res.status(400).json({ error: 'Please enter your domain carrier\u2019s name' });
     }
     if (delegationOk !== true) {
       return res.status(400).json({ error: 'Please delegate access to webdev@icans.ai at your domain carrier, then check the box' });
@@ -72,6 +75,7 @@ module.exports = async function handler(req, res) {
   const ichatPwLabel = {
     gmail: 'App Password', yahoo: 'App Password', webmail: 'Email Password', sendgrid: 'Password (API Key)',
   }[emailPlatform] || 'Password';
+  const dispDomainProvider = String(domainProvider).toLowerCase() === 'other' && carrierName ? carrierName : domainProvider;
   const dispSmtpServer = emailPlatform === 'm365' ? 'smtp.office365.com' : smtpServer;
   const dispSmtpPort = emailPlatform === 'm365' ? '587' : smtpPort;
   const cleanDomain = String(domain).trim().toLowerCase();
@@ -186,7 +190,7 @@ module.exports = async function handler(req, res) {
       ${emailPlatform === 'custom-domain' ? `
       <div class="row"><span class="label">Domain</span><span class="value">${escapeHtml(cleanDomain)}</span></div>
       <div class="row"><span class="label">iChat Subdomain</span><span class="value">ichat.${escapeHtml(cleanDomain)}</span></div>
-      <div class="row"><span class="label">Domain Carrier</span><span class="value">${escapeHtml(domainProvider)}</span></div>
+      <div class="row"><span class="label">Domain Carrier</span><span class="value">${escapeHtml(dispDomainProvider)}</span></div>
       <div class="row"><span class="label">Delegated to webdev@icans.ai</span><span class="value">${delegationOk ? 'Yes' : 'No'}</span></div>
       ` : `
       ${providerName ? `<div class="row"><span class="label">Provider Name</span><span class="value">${escapeHtml(providerName)}</span></div>` : ''}
@@ -244,7 +248,7 @@ module.exports = async function handler(req, res) {
     `Send/Receive:   ${mainEmail}`,
     `Platform:       ${ichatPlatformLabel}`,
     emailPlatform === 'custom-domain'
-      ? `Domain: ${cleanDomain} (ichat.${cleanDomain}) · Carrier: ${domainProvider} · Delegated: ${delegationOk ? 'Yes' : 'No'}`
+      ? `Domain: ${cleanDomain} (ichat.${cleanDomain}) · Carrier: ${dispDomainProvider} · Delegated: ${delegationOk ? 'Yes' : 'No'}`
       : [
           dispSmtpServer ? `${providerName ? 'Provider: ' + providerName + ' · ' : ''}SMTP: ${dispSmtpServer}:${dispSmtpPort}` : '',
           smtpUsername ? `Username: ${smtpUsername}` : '',

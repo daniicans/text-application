@@ -331,6 +331,10 @@ form .section-title:first-child { margin-top: 0; }
               <option value="other">Other</option>
             </select>
           </div>
+          <div class="field conditional" id="carrierNameField">
+            <label class="tg-lbl" for="carrierName">Carrier Name <span class="req">*</span></label>
+            <input class="tg-inp" type="text" id="carrierName" placeholder="e.g. Bluehost, IONOS, Network Solutions" autocomplete="off">
+          </div>
           <div class="steps conditional" id="delegationInstructions"></div>
           <label class="check conditional" id="delegationCheckWrap">
             <input type="checkbox" id="delegationOk">
@@ -440,6 +444,7 @@ form .section-title:first-child { margin-top: 0; }
 
   $('domainProvider').addEventListener('change', () => {
     const p = $('domainProvider').value;
+    $('carrierNameField').classList.toggle('show', p === 'other');
     $('delegationInstructions').classList.toggle('show', !!p);
     $('delegationCheckWrap').classList.toggle('show', !!p);
     if (p) $('delegationInstructions').innerHTML = MUST_READ + (DELEGATION_INSTRUCTIONS[p] || DELEGATION_INSTRUCTIONS.other);
@@ -489,6 +494,7 @@ form .section-title:first-child { margin-top: 0; }
       emailPlatform: platform,
       domain: custom ? cleanDomain($('domain').value) : '',
       domainProvider: custom ? $('domainProvider').value : '',
+      carrierName: custom && $('domainProvider').value === 'other' ? $('carrierName').value.trim() : '',
       delegationOk: custom ? $('delegationOk').checked : false,
       appPassword: custom ? '' : (platform === 'gmail' ? $('appPassword').value.replace(/\s+/g, '') : $('appPassword').value),
       smtpUsername: f && f.username ? $('smtpUsername').value.trim() : '',
@@ -506,6 +512,7 @@ form .section-title:first-child { margin-top: 0; }
     if (custom) {
       if (!payload.domain || !payload.domain.includes('.')) return showError('Please enter your custom domain (e.g. yourcompany.com).');
       if (!payload.domainProvider) return showError('Please select your domain carrier.');
+      if (payload.domainProvider === 'other' && payload.carrierName.length < 2) return showError('Please enter your domain carrier\u2019s name.');
       if (!payload.delegationOk) return showError('Please delegate access at your domain carrier using the steps shown, then check the box.');
     } else {
       if (f.providerName && payload.providerName.length < 2) return showError('Please enter your email provider\u2019s name.');

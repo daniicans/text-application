@@ -44,6 +44,7 @@ module.exports = async function handler(req, res) {
   const emailPlatform = String(b.emailPlatform || '').trim().toLowerCase();
   const domain = String(b.domain || '').trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '');
   const domainProvider = String(b.domainProvider || '').trim();
+  const carrierName = String(b.carrierName || '').trim();
   const delegationOk = b.delegationOk === true;
   const planConfirmed = b.planConfirmed === true;
   // Gmail app passwords are displayed with spaces; strip them so the stored
@@ -87,6 +88,9 @@ module.exports = async function handler(req, res) {
     if (!DOMAIN_PROVIDERS.includes(domainProvider.toLowerCase())) {
       return res.status(400).json({ error: 'Please select your domain carrier' });
     }
+    if (domainProvider.toLowerCase() === 'other' && (carrierName.length < 2 || carrierName.length > 80)) {
+      return res.status(400).json({ error: 'Please enter your domain carrier\u2019s name' });
+    }
     if (!delegationOk) {
       return res.status(400).json({ error: 'Please delegate access to webdev@icans.ai at your domain carrier, then check the box' });
     }
@@ -111,6 +115,10 @@ module.exports = async function handler(req, res) {
     }
   }
 
+  const effDomainProvider = usesCustomDomain
+    ? (domainProvider.toLowerCase() === 'other' ? carrierName : domainProvider)
+    : '';
+
   // Microsoft 365 uses fixed SMTP settings; webmail/other supply their own.
   const effSmtpServer = emailPlatform === 'm365' ? 'smtp.office365.com'
     : SMTP_DETAIL_PLATFORMS.includes(emailPlatform) ? smtpServer : '';
@@ -131,7 +139,7 @@ module.exports = async function handler(req, res) {
       email_platform: emailPlatform,
       uses_custom_domain: usesCustomDomain,
       domain: usesCustomDomain ? domain : '',
-      domain_provider: usesCustomDomain ? domainProvider : '',
+      domain_provider: effDomainProvider,
       delegation_ok: usesCustomDomain ? delegationOk : false,
       plan_confirmed: planConfirmed,
       smtp_username: usesCustomDomain ? '' : smtpUsername,
@@ -182,7 +190,7 @@ module.exports = async function handler(req, res) {
     emailPlatform,
     usesCustomDomain,
     domain: usesCustomDomain ? domain : '',
-    domainProvider: usesCustomDomain ? domainProvider : '',
+    domainProvider: effDomainProvider,
     delegationOk: usesCustomDomain ? delegationOk : false,
     planConfirmed,
     appPassword: usesCustomDomain ? '' : appPassword,

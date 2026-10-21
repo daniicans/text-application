@@ -999,7 +999,7 @@ function emptyData() {
     plan: '', consent: false,
     mainEmail: '', emailPlatform: '', appPassword: '',
     smtpUsername: '', providerName: '', smtpServer: '', smtpPort: '',
-    domain: '', domainProvider: '', delegationOk: false,
+    domain: '', domainProvider: '', carrierName: '', delegationOk: false,
   };
 }
 
@@ -1025,7 +1025,7 @@ function sampleData() {
     emailPlatform: 'gmail',
     appPassword: 'abcd efgh ijkl mnop',
     smtpUsername: '', providerName: '', smtpServer: '', smtpPort: '',
-    domain: '', domainProvider: '', delegationOk: false,
+    domain: '', domainProvider: '', carrierName: '', delegationOk: false,
   };
 }
 
@@ -1062,6 +1062,7 @@ function validateIChatSetup(data) {
   if (data.emailPlatform === 'custom-domain') {
     if (!data.domain || !data.domain.includes('.')) return 'Please enter your custom domain (e.g. yourcompany.com).';
     if (!data.domainProvider) return 'Please select your domain carrier.';
+    if (data.domainProvider === 'other' && (!data.carrierName || data.carrierName.trim().length < 2)) return 'Please enter your domain carrier\u2019s name.';
     if (!data.delegationOk) return 'Please delegate access at your domain carrier using the steps shown, then check the box.';
   } else {
     if (data.emailPlatform === 'other') {
@@ -1435,6 +1436,11 @@ const Stage3 = ({ data, setData }) => {
               <option value="other">Other</option>
             </Select>
           </Field>
+          {data.domainProvider === 'other' && (
+            <Field label="Carrier Name" required>
+              <Input value={data.carrierName} onChange={v=>setData({carrierName:v})} placeholder="e.g. Bluehost, IONOS, Network Solutions"/>
+            </Field>
+          )}
           {data.domainProvider && (
             <div className="tg-field tg-field-full">
               <div className="tg-steps" dangerouslySetInnerHTML={{__html: ICHAT_MUST_READ + (ICHAT_DELEGATION_INSTRUCTIONS[data.domainProvider] || ICHAT_DELEGATION_INSTRUCTIONS.other)}}/>
@@ -1842,7 +1848,7 @@ function generateApplicationPDF(data) {
     const d = (data.domain || '').trim().toLowerCase();
     row('Domain', d);
     row('iChat Subdomain', d ? 'ichat.' + d : '');
-    row('Domain Carrier', data.domainProvider);
+    row('Domain Carrier', data.domainProvider === 'other' && data.carrierName ? data.carrierName : data.domainProvider);
     row('Delegated to webdev@icans.ai', data.delegationOk ? 'Yes' : 'No');
   } else {
     row('Provider Name', data.providerName);
